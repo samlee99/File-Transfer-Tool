@@ -8,38 +8,101 @@ import java.io.*;
 import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.swing.*;  
+import javax.swing.*;
 
 /**
  *
  * @author Alexx
  */
 public class Server 
-{       
-    private ServerSocket server;
+{        
     private Socket sock;
-    private PrintStream msgOut;
-    PrintStream out;
+    private ServerSocket server;
+    private Scanner sc = new Scanner(System.in);
     
     public static void main(String[] args)
     {
         Server srv = new Server();
         srv.start(8888);
-        srv.readMessage();
-        //srv.readFile("test.txt");
-        srv.exit();
+        srv.authenticate();
+        srv.menu();
     }
-    
+        
     // Start the server and search for a client
     public void start(int port) 
     {
         try {
             server = new ServerSocket(8888);
+            System.out.println("Waiting for client...");
             sock = server.accept();
             System.out.println("Connected to client.");
+            
         } catch (IOException ex) {
             Logger.getLogger(Server.class.getName()).log(Level.SEVERE, null, ex);
         }
+    }
+    
+    public void menu()
+    {             
+        System.out.println("\n1. Download file");
+        System.out.println("2. Exit");                      
+        int choice = sc.nextInt();
+        sc.nextLine();
+        
+        switch(choice)
+        {
+            case 1:
+                readFile();
+                break;
+                
+            case 2:
+                exit();
+                break;
+                
+            default:
+                System.out.println("Invalid option. Try again.");
+                break;
+        }
+        menu();
+    }
+    
+    // Stored  username is returned;
+    public String getUser()
+    {
+        String user = "test";
+        return user;
+    }
+    
+    // Stored Salted/Hashed password is returned
+    public String getPass()
+    {
+        String pass = "380";
+        return pass;
+    }
+    
+    // Authenticate login information
+    public void authenticate()
+    {
+            sendMessage("Username: ");
+            String username = readMessage();
+            
+            sendMessage("Password");
+            String password = readMessage();
+            
+            if (!username.equals(getUser()))
+            {
+                sendMessage("Invalid username");
+                System.out.println();
+                authenticate();
+            }
+            if (!password.equals(getPass()))
+            {
+                sendMessage("Invalid password");
+                System.out.println();
+                authenticate();
+            }            
+            sendMessage("Logged in successfully!");
+            System.out.println("Client loggged in.");
     }
     
     // Send a string to the client 
@@ -49,64 +112,65 @@ public class Server
         try {  
             out = new PrintStream(sock.getOutputStream());         
             out.println(msg); 
-            out.close();            
+            out.flush();   
             
         } catch (IOException ex) {
             Logger.getLogger(Server.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
     
-    // Read a string sent by the client and print it to the console.
-    // If the message was received, notify the sender the message was received.
-    public void readMessage()
+    // Read a string sent by the client and print it to the console
+    public String readMessage()
     {
         BufferedReader BR;
         try {
             BR = new BufferedReader(new InputStreamReader(sock.getInputStream()));
             String msg = BR.readLine();
-            System.out.println(msg);
-            
-            if (msg != null)
-                sendMessage("Message received.");
+            return msg;
             
         } catch (IOException ex) {
             Logger.getLogger(Server.class.getName()).log(Level.SEVERE, null, ex);
-        }          
+        }    
+        return null;
     }
     
-    // *************Incomplete*********************
-    public void sendFile(String path)
+    public File saveFile()
     {
-        try {                        
-            byte[] file = new byte[1024];
-            InputStream in = new FileInputStream(new File(path));
-            OutputStream out = sock.getOutputStream();
-                        
-            
-            System.out.println(in.read() + "v");
-            int bytesRead;
-            while( (bytesRead = in.read(file)) > 0)
-                out.write(file, 0, bytesRead);
-            //out.close();            
-        } catch (IOException ex) {
-            Logger.getLogger(Server.class.getName()).log(Level.SEVERE, null, ex);
-        }
-    }
-
-    // *************Incomplete*********************
-    public void readFile(String path)
-    {
+        JFileChooser fc = new JFileChooser();
         try {
-            InputStream in = sock.getInputStream();
-            OutputStream out = new FileOutputStream(path);
-            byte[] file = new byte[1024];
+            if (fc.showSaveDialog(null) != JFileChooser.APPROVE_OPTION) 
+                throw new FileNotFoundException();
+
+            File file = fc.getSelectedFile();
+            return file;
+
+        } catch (FileNotFoundException e) {
+            System.out.println("Invalid file.");
+            exit();
+        }
+        return null;
+    }
+    
+    // Read a file from the client and save it at the given file path
+    public void readFile()
+    {
+        try { 
+            DataInputStream in = new DataInputStream(sock.getInputStream());         
+            byte[] buffer = new byte[1024];            
             int bytesRead;
-            System.out.println(in.read() + "d");
-            while( (bytesRead = in.read(file)) > 0)
+            
+            File file = saveFile();
+            DataOutputStream out = new DataOutputStream(new FileOutputStream(file));        
+            
+            while ( (bytesRead = in.read(buffer)) > 0)
             {
-                out.write(file, 0, bytesRead);
+                out.write(buffer, 0, bytesRead);   
+                break;
             }
-            out.close();
+                        
+            System.out.println("File downloaded.");
+            out.flush();     
+            
         } catch (IOException ex) {
             Logger.getLogger(Server.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -116,6 +180,8 @@ public class Server
     public void exit()
     {
         try {
+            System.out.println("\nExiting...");
+            System.out.println("Bye bye.");
             sock.close();
             server.close();
             System.exit(0);
