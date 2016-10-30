@@ -6,9 +6,9 @@ package client;
 import java.net.*;
 import java.io.*;
 import java.util.*;
-import java.nio.file.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.swing.JFileChooser;
 
 /**
  *
@@ -17,15 +17,14 @@ import java.util.logging.Logger;
 public class Client 
 {
     private Socket sock;
+    private Scanner sc = new Scanner(System.in);
     
     public static void main(String[] args)
     {
         Client cln = new Client();
         cln.start("localhost", 8888);
-        cln.sendMessage("Hello Server, tis I, Client!");
-        cln.readMessage();
-        //cln.sendFile("test.txt");
-        cln.exit();
+        cln.login();
+        cln.menu();
     }   
     
     // Connect the client to the server
@@ -33,9 +32,54 @@ public class Client
     {
         try {          
             sock = new Socket(host, port);
+            System.out.println("Connected to server.");
+            
         } catch (IOException ex) {
             Logger.getLogger(Client.class.getName()).log(Level.SEVERE, null, ex);
         }
+    }
+            
+    public void login()
+    {        
+        System.out.println(readMessage());
+        String username = sc.nextLine();
+        sendMessage(username);
+        
+        System.out.println(readMessage());
+        String password = sc.nextLine();
+        sendMessage(password);
+        
+        String msg = readMessage();
+        if (!msg.equals("Logged in successfully!")) 
+        {
+            System.out.println("Log in failed.");
+            login();
+        }
+        else
+            System.out.println(msg);
+    }
+    
+     public void menu()
+    {
+        System.out.println("\n1. Upload file");
+        System.out.println("2. Exit");
+
+        int choice = sc.nextInt();
+        sc.nextLine();
+
+        switch (choice) 
+        {
+            case 1:                             
+                upload();               
+                menu();
+                break;
+            case 2:
+                exit();
+            default:
+                System.out.println("Invalid choice.");
+                menu();
+        }
+       
     }
     
     // Send a string to the server 
@@ -45,70 +89,71 @@ public class Client
         try {
             out = new PrintStream(sock.getOutputStream());            
             out.println(msg);  
+            out.flush();
+            
         } catch (IOException ex) {
             Logger.getLogger(Client.class.getName()).log(Level.SEVERE, null, ex);
         }      
     }
     
     // Read a string sent by the server and print it to the console.    
-    // If the message was received successfully, notify the sender
-    public void readMessage()
+    // Return the message that was received.
+    public String readMessage()
     {
         BufferedReader BR;
         try {
             BR = new BufferedReader(new InputStreamReader(sock.getInputStream()));
             String msg = BR.readLine();
-            System.out.println(msg);
-        
-            if (msg != null) 
-                sendMessage("Message received.");
+            return msg;
             
         } catch (IOException ex) {
             Logger.getLogger(Client.class.getName()).log(Level.SEVERE, null, ex);
-        }
-          
+        }  
+        return null;
     }
     
-    // *************Incomplete*********************
-    public void sendFile(String path)
+    public void upload()
     {
-        try {                        
-            byte[] file = new byte[1024];
-            InputStream in = new FileInputStream(new File(path));
-            OutputStream out = sock.getOutputStream();
-                        
-            
-            System.out.println(in.read() + "v");
-            int bytesRead;
-            while( (bytesRead = in.read(file)) > 0)
-                out.write(file, 0, bytesRead);
-            //out.close();            
-        } catch (IOException ex) {
-            Logger.getLogger(Client.class.getName()).log(Level.SEVERE, null, ex);
-        }
-    }
-    
-    // *************Incomplete*********************
-    public void readFile(String path)
-    {
+        JFileChooser fc = new JFileChooser();
         try {
-            InputStream in = sock.getInputStream();
-            OutputStream out = new FileOutputStream(path);
-            byte[] file = new byte[1024];
+            if (fc.showOpenDialog(null) != JFileChooser.APPROVE_OPTION) 
+                throw new FileNotFoundException();
+            
+            File file = fc.getSelectedFile();
+            sendFile(file);
+            
+        } catch (FileNotFoundException e) {
+            System.out.println("Invalid file.");
+            exit();
+        }
+    }
+    
+    // Send the file at the given directory
+    public void sendFile(File file)
+    {
+        try {             
+            byte[] buffer = new byte[1024];
+            DataInputStream in = new DataInputStream(new FileInputStream(file));
+            DataOutputStream out = new DataOutputStream(sock.getOutputStream());  
             int bytesRead;
             
-            while( (bytesRead = in.read(file)) >= 0)
-                out.write(file, 0, bytesRead);
-            out.close();
+            while( (bytesRead = in.read(buffer)) > 0)
+                out.write(buffer, 0, bytesRead);
+            
+            out.flush();            
+            System.out.println("File uploaded.");
+            
         } catch (IOException ex) {
             Logger.getLogger(Client.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
-    
+        
     // Exit the program
     public void exit()
     {
         try {
+            System.out.println("\nExiting...");
+            System.out.println("Bye bye.");
             sock.close();
             System.exit(0);
         } catch (IOException ex) {
