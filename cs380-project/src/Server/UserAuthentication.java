@@ -12,7 +12,7 @@ import java.io.IOException;
 import java.security.SecureRandom;
 /**
  *
- * @author andre
+ * @author andrew
  */
 public class UserAuthentication {
     public boolean login(String username, String password){

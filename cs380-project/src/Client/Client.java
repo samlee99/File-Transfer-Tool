@@ -137,15 +137,22 @@ public class Client
         try {             
             byte[] buffer = new byte[1024];
             DataInputStream in = new DataInputStream(new FileInputStream(file));
-            DataOutputStream out = new DataOutputStream(sock.getOutputStream());  
+            DataOutputStream out = new DataOutputStream(sock.getOutputStream());
             int bytesRead;
-            
-            while( (bytesRead = in.read(buffer)) > 0)
-                out.write(buffer, 0, bytesRead);
-            
-            out.flush();            
-            System.out.println("File uploaded.");
-            
+            int filesize = 0;
+                // Read up to 1024 bytes (1kb)
+                while((bytesRead = in.read(buffer)) > 0){
+                    out.write(buffer, 0, bytesRead);
+                    filesize += bytesRead;
+                    System.out.print(filesize + ",");
+                    //garbage collector should clean out the old buffer I think...
+                    //Clean out the buffer and start fresh
+                    buffer = new byte[1024];
+                }
+            out.flush();
+            in.close();
+            in = null;
+            System.out.println("Uploaded the file!");
         } catch (IOException ex) {
             Logger.getLogger(Client.class.getName()).log(Level.SEVERE, null, ex);
         }

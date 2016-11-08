@@ -161,16 +161,21 @@ public class Server
             
             File file = saveFile();
             DataOutputStream out = new DataOutputStream(new FileOutputStream(file));        
-            
-            while ( (bytesRead = in.read(buffer)) > 0)
+            int filesize = 0;
+            while((bytesRead = in.read(buffer)) > 0)
             {
                 out.write(buffer, 0, bytesRead);   
-                break;
+                filesize += bytesRead;
+                System.out.print(filesize + ",");
+                //break;
+                if(bytesRead < 1024) break;
+                buffer = new byte[1024];
             }
                         
-            System.out.println("File downloaded.");
+            System.out.println("File downloaded with file size of " + filesize);
             out.flush();     
-            
+            out.close();
+            out = null;
         } catch (IOException ex) {
             Logger.getLogger(Server.class.getName()).log(Level.SEVERE, null, ex);
         }
