@@ -11,7 +11,7 @@ import server.Server;
  * @author andrew
  */
 public class FTP {
-    public static void main(String[] args)
+    public static void main(String[] args) throws InterruptedException
     {
         FTP ftp = new FTP();
         if(args.length > 0){
@@ -29,9 +29,16 @@ public class FTP {
     private static void help(){
         System.out.println("Usage: \"client\" or \"server\"");
     }
-    private void client(){
+    private void client() throws InterruptedException{
         Client cln = new Client();
-        cln.start("localhost", 8888);
+        boolean clientStarted = cln.start("localhost", 8888);
+        int numOfAttempt = 100;
+        while(!clientStarted && numOfAttempt >= 0){
+            System.out.println("Failed to find server... Attempt #" + (100-numOfAttempt));
+            Thread.sleep(1000);
+            numOfAttempt--;
+            clientStarted = cln.start("localhost", 8888);
+        }
         cln.login();
         cln.menu();
     }

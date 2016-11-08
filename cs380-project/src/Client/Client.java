@@ -28,15 +28,18 @@ public class Client
     }   */
     
     // Connect the client to the server
-    public void start(String host, int port) 
+    public boolean start(String host, int port) 
     {
+        boolean started = true;
         try {          
             sock = new Socket(host, port);
             System.out.println("Connected to server.");
             
         } catch (IOException ex) {
-            Logger.getLogger(Client.class.getName()).log(Level.SEVERE, null, ex);
+            started = false;
+            //Logger.getLogger(Client.class.getName()).log(Level.SEVERE, null, ex);
         }
+        return started;
     }
             
     public void login()
