@@ -4,6 +4,11 @@
  * and open the template in the editor.
  */
 package Server;
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.security.SecureRandom;
 /**
  *
@@ -11,28 +16,29 @@ import java.security.SecureRandom;
  */
 public class UserAuthentication {
     public boolean login(String username, String password){
-        //TODO: Get the user info from a file 
-        String user = "";
-        String savedUsername;
-        String savedSalt;
-        String savedSaltedPassword;
+        BufferedReader userfile;
         boolean foundUser = false;
-        //TEMP! Going to be has next line for file reader
-        boolean hasNext = false;
-        while(hasNext){
-            //Next line in file
-            user = "";
-            //The way we are storing passwords is username:salt:salted password
-            String[] savedUserInfo = user.split(":");
-            savedUsername = savedUserInfo[0];
-            savedSalt = savedUserInfo[1];
-            savedSaltedPassword = savedUserInfo[2];
-            String saltedPassword = createSaltedPassword(password, savedSalt);
-            if(username.equals(savedUsername) && savedSaltedPassword.equals(saltedPassword)){
-                foundUser = true;
-                break;
-            }
-        }        
+        try{
+            userfile = new BufferedReader(new FileReader("\\users.txt")); 
+            String user;
+            String savedSalt;
+            String savedSaltedPassword;
+            //Read line by line
+            while((user = userfile.readLine()) != null){
+                //The way we are storing passwords is username:salt:salted password
+                String[] savedUserInfo = user.split(":");
+                if(username.equals(savedUserInfo[0])){
+                    savedSalt = savedUserInfo[1];
+                    savedSaltedPassword = savedUserInfo[2];
+                    String saltedPassword = createSaltedPassword(password, savedSalt);
+                    if(savedSaltedPassword.equals(saltedPassword)){
+                        foundUser = true;
+                        break;
+                    }
+                }
+            }        
+            userfile.close();
+        }catch(Exception e){}
         return foundUser;
     }
     public String createUser(String username, String password){
@@ -40,6 +46,11 @@ public class UserAuthentication {
         String salt = createSalt();
         String saltedPassword = createSaltedPassword(password, salt);
         user += username + ":" + salt + ":" + saltedPassword;
+        try {
+            try (BufferedWriter userfile = new BufferedWriter(new FileWriter("\\users.txt"))) {
+                userfile.write(user + "\n");
+            }
+        }catch (IOException ex) {}
         return user;
     }
     private String createSalt(){
@@ -58,5 +69,5 @@ public class UserAuthentication {
         String saltedHash = hash.hash(saltPassword);
         return saltedHash;
     }
-    
+
 }
