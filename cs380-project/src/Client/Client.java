@@ -3,6 +3,7 @@
  */
 package client;
 
+import FTP.Message;
 import java.net.*;
 import java.io.*;
 import java.util.*;
@@ -18,7 +19,7 @@ public class Client
 {
     private Socket sock;
     private Scanner sc = new Scanner(System.in);
-    
+    Message message;
     /*public static void main(String[] args)
     {
         Client cln = new Client();
@@ -39,23 +40,26 @@ public class Client
             started = false;
             //Logger.getLogger(Client.class.getName()).log(Level.SEVERE, null, ex);
         }
+        //Open up the message queue
+        message = new Message(sock);
         return started;
     }
             
     public void login()
     {        
-        System.out.println(readMessage());
+        System.out.println(message.readMessage());
         String username = sc.nextLine();
-        sendMessage(username);
+        message.sendMessage(username);
         
-        System.out.println(readMessage());
+        System.out.println(message.readMessage());
         String password = sc.nextLine();
-        sendMessage(password);
+        message.sendMessage(password);
         
-        String msg = readMessage();
+        String msg = message.readMessage();
         if (!msg.equals("Logged in successfully!")) 
         {
             System.out.println("Log in failed.");
+            //TODO: Change this to a loop instead of recurrsion 
             login();
         }
         else
@@ -85,7 +89,7 @@ public class Client
        
     }
     
-    // Send a string to the server 
+/*    // Send a string to the server 
     public void sendMessage(String msg)
     {
         PrintStream out;
@@ -113,7 +117,7 @@ public class Client
             Logger.getLogger(Client.class.getName()).log(Level.SEVERE, null, ex);
         }  
         return null;
-    }
+    }*/
     
     public void upload()
     {

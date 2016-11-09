@@ -3,6 +3,7 @@
  */
 package server;
 
+import FTP.Message;
 import java.net.*;
 import java.io.*;
 import java.util.*;
@@ -19,7 +20,7 @@ public class Server
     private Socket sock;
     private ServerSocket server;
     private Scanner sc = new Scanner(System.in);
-    
+    Message message;
     /*public static void main(String[] args)
     {
         Server srv = new Server();
@@ -36,7 +37,7 @@ public class Server
             System.out.println("Waiting for client...");
             sock = server.accept();
             System.out.println("Connected to client.");
-            
+            message = new Message(sock);
         } catch (IOException ex) {
             Logger.getLogger(Server.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -83,28 +84,28 @@ public class Server
     // Authenticate login information
     public void authenticate()
     {
-            sendMessage("Username: ");
-            String username = readMessage();
+            message.sendMessage("Username: ");
+            String username = message.readMessage();
             
-            sendMessage("Password");
-            String password = readMessage();
+            message.sendMessage("Password");
+            String password = message.readMessage();
             
             if (!username.equals(getUser()))
             {
-                sendMessage("Invalid username");
+                message.sendMessage("Invalid username");
                 System.out.println();
                 authenticate();
             }
             if (!password.equals(getPass()))
             {
-                sendMessage("Invalid password");
+                message.sendMessage("Invalid password");
                 System.out.println();
                 authenticate();
             }            
-            sendMessage("Logged in successfully!");
+            message.sendMessage("Logged in successfully!");
             System.out.println("Client loggged in.");
     }
-    
+    /*
     // Send a string to the client 
     public void sendMessage(String msg)
     {
@@ -133,7 +134,7 @@ public class Server
         }    
         return null;
     }
-    
+    */
     public File saveFile()
     {
         JFileChooser fc = new JFileChooser();
@@ -162,8 +163,9 @@ public class Server
             File file = saveFile();
             DataOutputStream out = new DataOutputStream(new FileOutputStream(file));        
             int filesize = 0;
-            while((bytesRead = in.read(buffer)) > 0)
+            while(in.available() > 0)
             {
+                bytesRead = in.read(buffer);
                 out.write(buffer, 0, bytesRead);   
                 filesize += bytesRead;
                 System.out.print(filesize + ",");
