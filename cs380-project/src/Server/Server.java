@@ -84,26 +84,49 @@ public class Server
     // Authenticate login information
     public void authenticate()
     {
+        boolean login = false;
+        while(!login){
             message.sendMessage("Username: ");
+            boolean hasMsg = message.hasMessage();
+            while(!hasMsg){ hasMsg = message.hasMessage(); }
             String username = message.readMessage();
-            
-            message.sendMessage("Password");
+            System.out.println(username + " is trying to login");
+            message.sendMessage("Password: ");
+            hasMsg = message.hasMessage();
+            while(!hasMsg){ hasMsg = message.hasMessage(); }
             String password = message.readMessage();
+            System.out.println("With the password " + password);
+
+            if (username.equals(getUser()) && password.equals(getPass()))
+            {
+                login = true;
+            }else{
+                message.sendMessage("Invalid login, please try again...");
+                System.out.println();               
+            }
+        }
+        message.sendMessage("Logged in successfully!");
+        System.out.println("Client loggged in.");        
+           /* message.sendMessage(sock,"Username: ");
+            String username = message.readMessage(sock);
+            
+            message.sendMessage(sock,"Password");
+            String password = message.readMessage(sock);
             
             if (!username.equals(getUser()))
             {
-                message.sendMessage("Invalid username");
+                message.sendMessage(sock,"Invalid username");
                 System.out.println();
                 authenticate();
             }
             if (!password.equals(getPass()))
             {
-                message.sendMessage("Invalid password");
+                message.sendMessage(sock,"Invalid password");
                 System.out.println();
                 authenticate();
             }            
-            message.sendMessage("Logged in successfully!");
-            System.out.println("Client loggged in.");
+            message.sendMessage(sock,"Logged in successfully!");
+            System.out.println("Client loggged in.");*/
     }
     /*
     // Send a string to the client 

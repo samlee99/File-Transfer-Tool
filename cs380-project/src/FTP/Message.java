@@ -20,38 +20,55 @@ import server.Server;
  * @author andre
  */
 public class Message {
-    private Queue<String> msgQueue;
+    //private Queue<String> msgQueue;
     private Socket sock;
-    
-    public Message(Socket sock){
+    private BufferedReader bf;
+    private PrintStream ps;
+    /*public Message(Socket sock){
         this.sock = sock;
+    }*/
+   
+    public Message(Socket sock){
+        try {
+            this.sock = sock;
+            bf = new BufferedReader(new InputStreamReader(sock.getInputStream()));
+            ps = new PrintStream(sock.getOutputStream());
+        } catch (IOException ex) {
+            Logger.getLogger(Message.class.getName()).log(Level.SEVERE, null, ex);
+        }
     }
         // Send a string to the client 
     public void sendMessage(String msg)
     {
-        PrintStream out;
-        try {  
-            out = new PrintStream(sock.getOutputStream());         
-            out.println(msg); 
-            out.flush();   
-            
-        } catch (IOException ex) {
-            Logger.getLogger(Server.class.getName()).log(Level.SEVERE, null, ex);
-        }
+        ps.println(msg); 
+        ps.flush();   
     }
     
     // Read a string sent by the client and print it to the console
     public String readMessage()
     {
-        BufferedReader BR;
+        String msg = null;
         try {
-            BR = new BufferedReader(new InputStreamReader(sock.getInputStream()));
-            String msg = BR.readLine();
-            return msg;
-            
+            msg = bf.readLine();
         } catch (IOException ex) {
-            Logger.getLogger(Server.class.getName()).log(Level.SEVERE, null, ex);
-        }    
-        return null;
+            Logger.getLogger(Message.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return msg;
+        
+    }
+    
+    public boolean hasMessage(){
+        try {       
+            boolean hasMsg = false;
+            //System.out.println(BR.ready());
+            bf.mark(2);
+            int ch = bf.read();
+            if(ch != -1) hasMsg = true;
+            bf.reset();
+            if(hasMsg) return true;
+        } catch (IOException ex) {
+            Logger.getLogger(Message.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return false;
     }
 }

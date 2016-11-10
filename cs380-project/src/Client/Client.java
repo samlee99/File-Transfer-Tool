@@ -41,21 +41,49 @@ public class Client
             //Logger.getLogger(Client.class.getName()).log(Level.SEVERE, null, ex);
         }
         //Open up the message queue
-        message = new Message(sock);
+        if(started)
+            message = new Message(sock);
         return started;
     }
             
     public void login()
     {        
-        System.out.println(message.readMessage());
+        boolean login = false;
+        while(!login){
+            boolean hasMsg = message.hasMessage();
+            while(!hasMsg){ hasMsg = message.hasMessage(); }
+            System.out.println(message.readMessage());
+            String username = sc.nextLine();
+            message.sendMessage(username);
+
+            hasMsg = message.hasMessage();
+            while(!hasMsg){ hasMsg = message.hasMessage(); }
+            System.out.println(message.readMessage());
+            String password = sc.nextLine();
+            message.sendMessage(password);
+            
+            hasMsg = message.hasMessage();
+            while(!hasMsg){ hasMsg = message.hasMessage(); }
+            String msg = message.readMessage();
+            if (!msg.equals("Logged in successfully!")) 
+            {
+                System.out.println("Log in failed.");
+                //TODO: Change this to a loop instead of recurrsion 
+            }
+            else{
+                System.out.println(msg);   
+                login = true;
+            }
+        }
+        /*System.out.println(message.readMessage(sock));
         String username = sc.nextLine();
-        message.sendMessage(username);
+        message.sendMessage(sock,username);
         
-        System.out.println(message.readMessage());
+        System.out.println(message.readMessage(sock));
         String password = sc.nextLine();
-        message.sendMessage(password);
+        message.sendMessage(sock,password);
         
-        String msg = message.readMessage();
+        String msg = message.readMessage(sock);
         if (!msg.equals("Logged in successfully!")) 
         {
             System.out.println("Log in failed.");
@@ -63,7 +91,7 @@ public class Client
             login();
         }
         else
-            System.out.println(msg);
+            System.out.println(msg);*/
     }
     
      public void menu()
