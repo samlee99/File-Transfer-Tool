@@ -173,14 +173,14 @@ public class Client
             int bytesRead;
             int filesize = 0;
                 // Read up to 1024 bytes (1kb)
-                while((bytesRead = in.read(buffer)) > 0){
-                    out.write(buffer, 0, bytesRead);
-                    filesize += bytesRead;
-                    System.out.print(filesize + ",");
-                    //garbage collector should clean out the old buffer I think...
-                    //Clean out the buffer and start fresh
-                    buffer = new byte[1024];
-                }
+            while((bytesRead = in.read(buffer)) > 0){
+                out.write(buffer, 0, bytesRead);
+                filesize += bytesRead;
+                System.out.print(filesize + ",");
+                //garbage collector should clean out the old buffer I think...
+                //Clean out the buffer and start fresh
+                buffer = new byte[1024];
+            }
             out.flush();
             in.close();
             in = null;
