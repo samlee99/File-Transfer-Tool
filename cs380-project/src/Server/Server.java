@@ -6,6 +6,7 @@ package server;
 import FTP.Message;
 import java.net.*;
 import java.io.*;
+import java.lang.*;
 import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -43,6 +44,7 @@ public class Server
         }
     }
     
+    // Start menu for choosing to download a file or quit the program
     public void menu()
     {             
         System.out.println("\n1. Download file");
@@ -107,57 +109,9 @@ public class Server
         }
         message.sendMessage("Logged in successfully!");
         System.out.println("Client loggged in.");        
-           /* message.sendMessage(sock,"Username: ");
-            String username = message.readMessage(sock);
-            
-            message.sendMessage(sock,"Password");
-            String password = message.readMessage(sock);
-            
-            if (!username.equals(getUser()))
-            {
-                message.sendMessage(sock,"Invalid username");
-                System.out.println();
-                authenticate();
-            }
-            if (!password.equals(getPass()))
-            {
-                message.sendMessage(sock,"Invalid password");
-                System.out.println();
-                authenticate();
-            }            
-            message.sendMessage(sock,"Logged in successfully!");
-            System.out.println("Client loggged in.");*/
-    }
-    /*
-    // Send a string to the client 
-    public void sendMessage(String msg)
-    {
-        PrintStream out;
-        try {  
-            out = new PrintStream(sock.getOutputStream());         
-            out.println(msg); 
-            out.flush();   
-            
-        } catch (IOException ex) {
-            Logger.getLogger(Server.class.getName()).log(Level.SEVERE, null, ex);
-        }
     }
     
-    // Read a string sent by the client and print it to the console
-    public String readMessage()
-    {
-        BufferedReader BR;
-        try {
-            BR = new BufferedReader(new InputStreamReader(sock.getInputStream()));
-            String msg = BR.readLine();
-            return msg;
-            
-        } catch (IOException ex) {
-            Logger.getLogger(Server.class.getName()).log(Level.SEVERE, null, ex);
-        }    
-        return null;
-    }
-    */
+    // Enter name and directory for the file to save
     public File saveFile()
     {
         JFileChooser fc = new JFileChooser();
@@ -170,7 +124,6 @@ public class Server
 
         } catch (FileNotFoundException e) {
             System.out.println("Invalid file.");
-            exit();
         }
         return null;
     }
@@ -185,25 +138,68 @@ public class Server
             
             File file = saveFile();
             DataOutputStream out = new DataOutputStream(new FileOutputStream(file));        
-            int filesize = 0;
-            while(in.available() > 0)
+            int fileSize = 0;            
+            String hasBytes = "";
+            boolean lastChunk = false;
+            
+            while(lastChunk == false)
             {
-                bytesRead = in.read(buffer);
-                out.write(buffer, 0, bytesRead);   
-                filesize += bytesRead;
-                System.out.print(filesize + ",");
-                //break;
-                if(bytesRead < 1024) break;
-                buffer = new byte[1024];
-            }
-                        
-            System.out.println("File downloaded with file size of " + filesize);
+                boolean hasMsg = message.hasMessage();
+                while(!hasMsg){ hasMsg = message.hasMessage(); }
+                hasBytes = message.readMessage();                         
+                if (hasBytes.equals("sending") || hasBytes.equals("last")) 
+                {
+                    if (hasBytes.equals("last"))
+                        lastChunk = true;
+                    
+                    // tell client the server is ready to receive bytes                 
+                    isReady();
+                    
+                    // wait for client to send bytes
+                    Thread.sleep(10);
+                    
+                    // read bytes sent by client          
+                    bytesRead = in.read(buffer);
+                  
+                    //*******************INSERT DECODING***********************
+                    
+                    out.write(buffer, 0, bytesRead);
+                    
+                    //notify client bytes have been received
+                    hasReceived();                 
+                    
+                    // total bytes received
+                    fileSize += bytesRead;                    
+                    System.out.println("---------> " + fileSize + " bytes received");                    
+                    
+                    // reset buffer
+                    buffer = new byte[1024];
+                }
+            }                        
+            System.out.println("\nDownloaded file of size " + fileSize + " bytes");
             out.flush();     
             out.close();
             out = null;
-        } catch (IOException ex) {
+        } catch (NullPointerException ex){
+            menu();
+        }           
+          catch (IOException | InterruptedException ex) {
             Logger.getLogger(Server.class.getName()).log(Level.SEVERE, null, ex);
         }
+    }
+    
+    // Print and send message to client that server is ready to receive bytes
+    public void isReady() {
+        String hasBytes = "\nready";
+        message.sendMessage(hasBytes);
+        System.out.println(hasBytes);
+    }
+    
+    // Print and send message to client that server has received bytes
+    public void hasReceived() {
+        String hasBytes = "received";
+        System.out.println(hasBytes);
+        message.sendMessage("received");             
     }
     
     // Exit the program
