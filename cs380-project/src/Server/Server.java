@@ -102,7 +102,7 @@ public class Server
                     createUser(ua);
                     break;
                 case "login":
-                    loggedOn = login();
+                    loggedOn = login(ua);
                     break;
                 case "exit":
                     //TODO: Client should force server to exit
@@ -114,7 +114,7 @@ public class Server
         }
     }
     
-    public boolean login(){
+    public boolean login(UserAuthentication ua){
             boolean login = false;
             while(!login){
                 message.sendMessage("Username: ");
@@ -127,14 +127,21 @@ public class Server
                 while(!hasMsg){ hasMsg = message.hasMessage(); }
                 String password = message.readMessage();
                 System.out.println("With the password " + password);
-
-                if (username.equals(getUser()) && password.equals(getPass()))
+                boolean userLogin = ua.login(username, password);
+                if (userLogin)
                 {
                     login = true;
                 }else{
                     message.sendMessage("Invalid login, please try again...");
                     System.out.println();               
                 }
+                /*if (username.equals(getUser()) && password.equals(getPass()))
+                {
+                    login = true;
+                }else{
+                    message.sendMessage("Invalid login, please try again...");
+                    System.out.println();               
+                }*/
             }
             message.sendMessage("Logged in successfully!");
             System.out.println("Client loggged in.");     

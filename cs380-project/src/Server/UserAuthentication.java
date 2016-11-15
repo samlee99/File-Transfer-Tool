@@ -70,6 +70,7 @@ public class UserAuthentication {
         Base64 b64 = new Base64();
         salt = b64.encode(bytes);
         salt = salt.replace("=", "");
+        System.out.println(salt.length() + " - " + bytes.length);
         //TODO: Use Base64 encoding to convert bytes into a string
         //salt = new String(bytes, ""); 
         return salt;
@@ -77,7 +78,7 @@ public class UserAuthentication {
     private String createSaltedPassword(String password, String salt){
         String saltPassword = salt+password;
         CustomHash hash = new CustomHash();
-        String saltedHash = saltPassword;
+        String saltedHash = hash.passHash(saltPassword);
         return saltedHash;
     }
 
