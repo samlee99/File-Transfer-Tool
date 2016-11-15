@@ -48,37 +48,87 @@ public class Client
     }
             
     // Log client into server
-    public void login()
+    public void loginMenu(Console console)
     {        
-        boolean login = false;
-        while(!login){
-            boolean hasMsg = message.hasMessage();
-            while(!hasMsg){ hasMsg = message.hasMessage(); }
-            System.out.println(message.readMessage());
-            String username = sc.nextLine();
-            message.sendMessage(username);
-
-            hasMsg = message.hasMessage();
-            while(!hasMsg){ hasMsg = message.hasMessage(); }
-            System.out.println(message.readMessage());
-            String password = sc.nextLine();
-            message.sendMessage(password);
-            
-            hasMsg = message.hasMessage();
-            while(!hasMsg){ hasMsg = message.hasMessage(); }
-            String msg = message.readMessage();
-            if (!msg.equals("Logged in successfully!")) 
-            {
-                System.out.println("Log in failed.");
-                //TODO: Change this to a loop instead of recurrsion 
-            }
-            else{
-                System.out.println(msg);   
-                login = true;
-            }
+        System.out.println("1) Create new user");
+        System.err.println("2) Login");
+        System.out.println("3) Exit");
+        boolean loggedOn = false;
+        int choice = sc.nextInt();
+        sc.nextLine();
+        while(choice != 3 && loggedOn == false){
+            switch(choice){
+                case 1:
+                    message.sendMessage("create");
+                    createUser(console);
+                    break;
+                case 2:
+                    message.sendMessage("login");
+                    loggedOn = login(console);
+                    break;
+                case 3:
+                    message.sendMessage("exit");
+                    exit();
+                default:
+            }      
+            if(loggedOn) break;
+            System.out.println("1) Create new user");
+            System.err.println("2) Login");
+            System.out.println("3) Exit");
+            choice = sc.nextInt();
+            sc.nextLine();
         }
     }
-    
+    public void createUser(Console console){
+        boolean hasMsg = message.hasMessage();
+        while(!hasMsg){ hasMsg = message.hasMessage(); }
+        System.out.println(message.readMessage()); 
+        String username = sc.nextLine();
+        message.sendMessage(username);     
+        hasMsg = message.hasMessage();
+        while(!hasMsg){ hasMsg = message.hasMessage(); }
+        System.out.println(message.readMessage());
+        char[] hiddenPassword = console.readPassword();
+        String password = new String(hiddenPassword);
+        message.sendMessage(password);    
+        while(!hasMsg){ hasMsg = message.hasMessage(); }
+        String msg = message.readMessage();
+        if(msg.equals("Created user!")){
+            System.out.println(msg);
+        }else System.out.println(msg);
+    }
+    public boolean login(Console console){
+            boolean login = false;
+            while(!login){
+                boolean hasMsg = message.hasMessage();
+                while(!hasMsg){ hasMsg = message.hasMessage(); }
+                System.out.println(message.readMessage());
+                String username = sc.nextLine();
+                message.sendMessage(username);
+
+                hasMsg = message.hasMessage();
+                while(!hasMsg){ hasMsg = message.hasMessage(); }
+                System.out.println(message.readMessage());
+                char[] hiddenPassword = console.readPassword();
+                String password = new String(hiddenPassword);
+                message.sendMessage(password);
+                
+                hasMsg = message.hasMessage();
+                while(!hasMsg){ hasMsg = message.hasMessage(); }
+                String msg = message.readMessage();
+                if (!msg.equals("Logged in successfully!")) 
+                {
+                    System.out.println("Log in failed.");
+                    //TODO: Change this to a loop instead of recurrsion 
+                }
+                else{
+                    System.out.println(msg);   
+                    login = true;
+                    return login;
+                }
+            }
+            return false;
+    }
     // Start menu for choosing to upload a file or quit the program
     public void menu()
     {

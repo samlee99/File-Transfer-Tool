@@ -1,3 +1,5 @@
+package Base64;
+
 public class Base64 {
     private static final String B64 = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=";
 

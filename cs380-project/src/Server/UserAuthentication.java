@@ -4,11 +4,15 @@
  * and open the template in the editor.
  */
 package Server;
+import Base64.Base64;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.security.SecureRandom;
 /**
  *
@@ -19,7 +23,7 @@ public class UserAuthentication {
         BufferedReader userfile;
         boolean foundUser = false;
         try{
-            userfile = new BufferedReader(new FileReader("\\users.txt")); 
+            userfile = new BufferedReader(new FileReader("users.txt")); 
             String user;
             String savedSalt;
             String savedSaltedPassword;
@@ -41,17 +45,21 @@ public class UserAuthentication {
         }catch(Exception e){}
         return foundUser;
     }
-    public String createUser(String username, String password){
+    public boolean createUser(String username, String password){
+        System.out.println("Creating user: " + username + "-" + password);
         String user = "";
         String salt = createSalt();
         String saltedPassword = createSaltedPassword(password, salt);
-        user += username + ":" + salt + ":" + saltedPassword;
+        System.out.println(saltedPassword);
+        user = username + ":" + salt + ":" + saltedPassword;
         try {
-            try (BufferedWriter userfile = new BufferedWriter(new FileWriter("\\users.txt"))) {
-                userfile.write(user + "\n");
+            System.out.println("Writing to file...");
+            try (PrintWriter out = new PrintWriter(new FileOutputStream(new File("users.txt"),true))) {
+                out.println(user);
             }
-        }catch (IOException ex) {}
-        return user;
+            return true;
+        }catch (IOException ex) { System.out.println("IOException!");}
+        return false;
     }
     private String createSalt(){
         String salt = "";
@@ -59,6 +67,9 @@ public class UserAuthentication {
         byte bytes[] = new byte[16];
         random.setSeed(random.generateSeed(16));
         random.nextBytes(bytes);
+        Base64 b64 = new Base64();
+        salt = b64.encode(bytes);
+        salt = salt.replace("=", "");
         //TODO: Use Base64 encoding to convert bytes into a string
         //salt = new String(bytes, ""); 
         return salt;
@@ -66,7 +77,7 @@ public class UserAuthentication {
     private String createSaltedPassword(String password, String salt){
         String saltPassword = salt+password;
         CustomHash hash = new CustomHash();
-        String saltedHash = hash.hash(saltPassword);
+        String saltedHash = saltPassword;
         return saltedHash;
     }
 

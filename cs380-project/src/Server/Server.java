@@ -4,6 +4,7 @@
 package server;
 
 import FTP.Message;
+import Server.UserAuthentication;
 import java.net.*;
 import java.io.*;
 import java.lang.*;
@@ -48,25 +49,28 @@ public class Server
     public void menu()
     {             
         System.out.println("\n1. Download file");
-        System.out.println("2. Exit");                      
+        System.out.println("2. Exit");
         int choice = sc.nextInt();
         sc.nextLine();
         
-        switch(choice)
-        {
-            case 1:
-                readFile();
-                break;
-                
-            case 2:
-                exit();
-                break;
-                
-            default:
-                System.out.println("Invalid option. Try again.");
-                break;
+        while(choice != 2){
+            switch(choice)
+            {
+                case 1:
+                    readFile();
+                    break;
+
+                case 2:
+                    exit();
+                    break;
+
+                default:
+                    System.out.println("Invalid option. Try again.");
+                    break;
+            }
+            choice = sc.nextInt();
+            sc.nextLine();
         }
-        menu();
     }
     
     // Stored  username is returned;
@@ -86,29 +90,69 @@ public class Server
     // Authenticate login information
     public void authenticate()
     {
-        boolean login = false;
-        while(!login){
-            message.sendMessage("Username: ");
-            boolean hasMsg = message.hasMessage();
-            while(!hasMsg){ hasMsg = message.hasMessage(); }
-            String username = message.readMessage();
-            System.out.println(username + " is trying to login");
-            message.sendMessage("Password: ");
-            hasMsg = message.hasMessage();
-            while(!hasMsg){ hasMsg = message.hasMessage(); }
-            String password = message.readMessage();
-            System.out.println("With the password " + password);
-
-            if (username.equals(getUser()) && password.equals(getPass()))
-            {
-                login = true;
-            }else{
-                message.sendMessage("Invalid login, please try again...");
-                System.out.println();               
+        UserAuthentication ua = new UserAuthentication();
+        //boolean clientExit = false;
+        boolean loggedOn = false;
+        while(!loggedOn){
+            boolean clientRdy = false;
+            while(!clientRdy){ clientRdy = message.hasMessage(); }    
+            String cmsg = message.readMessage();     
+            switch(cmsg){
+                case "create":
+                    createUser(ua);
+                    break;
+                case "login":
+                    loggedOn = login();
+                    break;
+                case "exit":
+                    //TODO: Client should force server to exit
+                    exit();
+                    break;
+                default:
+                    
             }
         }
-        message.sendMessage("Logged in successfully!");
-        System.out.println("Client loggged in.");        
+    }
+    
+    public boolean login(){
+            boolean login = false;
+            while(!login){
+                message.sendMessage("Username: ");
+                boolean hasMsg = message.hasMessage();
+                while(!hasMsg){ hasMsg = message.hasMessage(); }
+                String username = message.readMessage();
+                System.out.println(username + " is trying to login");
+                message.sendMessage("Password: ");
+                hasMsg = message.hasMessage();
+                while(!hasMsg){ hasMsg = message.hasMessage(); }
+                String password = message.readMessage();
+                System.out.println("With the password " + password);
+
+                if (username.equals(getUser()) && password.equals(getPass()))
+                {
+                    login = true;
+                }else{
+                    message.sendMessage("Invalid login, please try again...");
+                    System.out.println();               
+                }
+            }
+            message.sendMessage("Logged in successfully!");
+            System.out.println("Client loggged in.");     
+            return login;
+    }
+    
+    public void createUser(UserAuthentication ua){
+        message.sendMessage("c_username");
+        boolean hasMsg = message.hasMessage();
+        while(!hasMsg){ hasMsg = message.hasMessage(); }
+        String username = message.readMessage();
+        message.sendMessage("c_password");
+        hasMsg = message.hasMessage();
+        while(!hasMsg){ hasMsg = message.hasMessage(); }       
+        String password = message.readMessage();
+        boolean created = ua.createUser(username, password);
+        if(created) message.sendMessage("Created user!");
+        else message.sendMessage("Could not create user!");
     }
     
     // Enter name and directory for the file to save
