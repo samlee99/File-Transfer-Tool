@@ -61,6 +61,26 @@ public class UserAuthentication {
         }catch (IOException ex) { System.out.println("IOException!");}
         return false;
     }
+    public boolean usernameAvailable(String username){
+        if(username.equals("")){
+            return false;
+        }
+        BufferedReader userfile;
+        try{
+            userfile = new BufferedReader(new FileReader("users.txt")); 
+            String user;
+            //Read line by line
+            while((user = userfile.readLine()) != null){
+                //The way we are storing passwords is username:salt:salted password
+                String[] savedUserInfo = user.split(":");
+                if(username.equals(savedUserInfo[0])){
+                    return false;
+                }
+            }        
+            userfile.close();
+        }catch(Exception e){}        
+        return true;
+    }
     private String createSalt(){
         String salt = "";
         SecureRandom random = new SecureRandom();

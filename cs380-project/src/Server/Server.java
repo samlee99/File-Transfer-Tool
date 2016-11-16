@@ -74,20 +74,24 @@ public class Server
                     break;
                 case "login":
                     loggedOn = login(ua);
+                    if(!loggedOn) System.out.println("User failed to login");
                     break;
                 case "exit":
                     //TODO: Client should force server to exit
                     exit();
                     break;
-                default:
-                    
+                default:                    
             }
+        }
+        if(loggedOn){
+            message.sendMessage("Logged in successfully!");
+            System.out.println("Client loggged in.");     
         }
     }
     
     public boolean login(UserAuthentication ua){
             boolean login = false;
-            while(!login){
+           // while(!login){
                 message.sendMessage("Username: ");
                 boolean hasMsg = message.hasMessage();
                 while(!hasMsg){ hasMsg = message.hasMessage(); }
@@ -113,26 +117,38 @@ public class Server
                     message.sendMessage("Invalid login, please try again...");
                     System.out.println();               
                 }*/
-            }
-            message.sendMessage("Logged in successfully!");
-            System.out.println("Client loggged in.");     
+            //}
             return login;
     }
     
     public void createUser(UserAuthentication ua){
-        message.sendMessage("c_username");
+        //String username = message.readMessage();
+        String username = createUsername(ua);
+        message.sendMessage("Password");
         boolean hasMsg = message.hasMessage();
-        while(!hasMsg){ hasMsg = message.hasMessage(); }
-        String username = message.readMessage();
-        message.sendMessage("c_password");
-        hasMsg = message.hasMessage();
         while(!hasMsg){ hasMsg = message.hasMessage(); }       
         String password = message.readMessage();
         boolean created = ua.createUser(username, password);
         if(created) message.sendMessage("Created user!");
         else message.sendMessage("Could not create user!");
     }
-    
+     public String createUsername(UserAuthentication ua){
+        String username = "";
+        boolean goodname = false;
+        while(!goodname){
+          message.sendMessage("Username");
+          boolean hasMsg = message.hasMessage();
+          while(!hasMsg){ hasMsg = message.hasMessage(); }  
+          username = message.readMessage();
+          goodname = ua.usernameAvailable(username);
+          if(goodname == true){
+              message.sendMessage("Username is available!");
+              break;
+          }
+          message.sendMessage("Username is not available!");
+        }
+        return username;
+    }   
     // Enter name and directory for the file to save
     public File saveFile()
     {

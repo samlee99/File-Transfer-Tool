@@ -6,6 +6,7 @@
 package FTP;
 import client.Client;
 import java.io.Console;
+import java.util.Scanner;
 import server.Server;
 /**
  *
@@ -36,21 +37,34 @@ public class FTP {
         System.out.println("Usage: \"client\" or \"server\"");
     }
     private void client(Console console) throws InterruptedException{
+        Scanner sc = new Scanner(System.in);
+        System.out.println("Enter host: ");
+        String host = sc.nextLine();
+        System.out.println("Enter port: ");
+        String portInput = sc.nextLine();
+        int port = Integer.parseInt(portInput);
         Client cln = new Client();
-        boolean clientStarted = cln.start("localhost", 8888);
+        boolean clientStarted = cln.start(host, port);
         int numOfAttempt = 100;
         while(!clientStarted && numOfAttempt >= 0){
-            System.out.println("Failed to find server... Attempt #" + (100-numOfAttempt));
-            Thread.sleep(1000);
+            System.out.println("Failed to find server... Attempt #" + (100-numOfAttempt) + "\nTry again...");
+            System.out.println("Enter host: ");
+            host = sc.nextLine();
+            System.out.println("Enter port: ");
+            portInput = sc.nextLine();
+            port = Integer.parseInt(portInput);     
             numOfAttempt--;
-            clientStarted = cln.start("localhost", 8888);
+            clientStarted = cln.start(host, port);
         }
         cln.loginMenu(console);
-        cln.menu();
     }
     private void server(){
+        Scanner sc = new Scanner(System.in);       
         Server srv = new Server();
-        srv.start(8888);
+        System.out.println("Enter a port to listen to:");
+        String portInput = sc.nextLine();
+        int port = Integer.parseInt(portInput);       
+        srv.start(port);
         srv.authenticate();
         srv.menu();
     }

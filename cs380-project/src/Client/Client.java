@@ -64,7 +64,7 @@ public class Client
                     exit();
                 default:
             }      
-            if(loggedOn) break;
+            if(loggedOn) menu();
             System.out.println("1) Create new user");
             System.err.println("2) Login");
             System.out.println("3) Exit");
@@ -73,16 +73,18 @@ public class Client
         }
     }
     public void createUser(Console console){
+        createUsername();
         boolean hasMsg = message.hasMessage();
         while(!hasMsg){ hasMsg = message.hasMessage(); }
-        System.out.println(message.readMessage()); 
-        String username = sc.nextLine();
-        message.sendMessage(username);     
-        hasMsg = message.hasMessage();
-        while(!hasMsg){ hasMsg = message.hasMessage(); }
         System.out.println(message.readMessage());
-        char[] hiddenPassword = console.readPassword();
-        String password = new String(hiddenPassword);
+        boolean goodpass = false;
+        String password = "";
+        while(!goodpass){
+            char[] hiddenPassword = console.readPassword();
+            password = new String(hiddenPassword);
+            if(password.equals("")) System.out.println("Password cannot be empty!");
+            else goodpass = true;
+        }
         message.sendMessage(password);    
         while(!hasMsg){ hasMsg = message.hasMessage(); }
         String msg = message.readMessage();
@@ -90,9 +92,31 @@ public class Client
             System.out.println(msg);
         }else System.out.println(msg);
     }
+    
+    public void createUsername(){
+        boolean goodname = false;
+        while(!goodname){
+            boolean hasMsg = message.hasMessage();
+            while(!hasMsg){ hasMsg = message.hasMessage(); }
+            System.out.println(message.readMessage()); 
+            String username = sc.nextLine();    
+            message.sendMessage(username);    
+            hasMsg = message.hasMessage();
+            while(!hasMsg){ hasMsg = message.hasMessage(); }
+            String msg = message.readMessage();
+            if(msg.equals("Username is available!")){
+                System.out.println(msg);
+                goodname = true;
+            }else{
+                System.out.println(msg);
+            }
+            
+        }
+    }
+    
     public boolean login(Console console){
             boolean login = false;
-            while(!login){
+            //while(!login){
                 boolean hasMsg = message.hasMessage();
                 while(!hasMsg){ hasMsg = message.hasMessage(); }
                 System.out.println(message.readMessage());
@@ -119,7 +143,7 @@ public class Client
                     login = true;
                     return login;
                 }
-            }
+            //}
             return false;
     }
     // Start menu for choosing to upload a file or quit the program
