@@ -21,13 +21,6 @@ public class Client
     private Socket sock;
     private Scanner sc = new Scanner(System.in);
     Message message;
-    /*public static void main(String[] args)
-    {
-        Client cln = new Client();
-        cln.start("localhost", 8888);
-        cln.login();
-        cln.menu();
-    }   */
     
     // Connect the client to the server
     public boolean start(String host, int port) 
@@ -171,53 +164,80 @@ public class Client
     // Send the file at the given directory
     public void sendFile(File file)
     {
+        // Tell server a file is being uploaded
+        message.sendMessage("uploading");
         try {             
             byte[] buffer = new byte[1024];
-            DataInputStream in = new DataInputStream(new FileInputStream(file));
+            BufferedInputStream in = new BufferedInputStream (new FileInputStream(file));
             DataOutputStream out = new DataOutputStream(sock.getOutputStream());
             int bytesRead;
             int bytesSent = 0;
+            int attempts = 0;
             long fileSize = file.length();            
-            String hasBytes = "received";
-            System.out.println("Uploading file of size: " + fileSize + " bytes...\n");
-            
+            String received = "received";
+                    
+            System.out.println("Uploading file of size: " + fileSize + " bytes...\n");            
             // Read up to 1024 bytes (1kb)
-            while ((bytesRead = in.read(buffer)) > 0) 
+            while ((bytesRead = in.read(buffer)) > 0 && !received.equals("quit")) 
             {    
-                if (hasBytes.equals("received")) 
+                in.mark(1024);
+                while (true)
                 {
-                    // notify the server of the bytes are being sent
-                    if (fileSize <= 1024)
-                        hasBytes = "last";
-                    else                        
-                        hasBytes = "sending";
-                    message.sendMessage(hasBytes);
+                    if (received.equals("received")) 
+                    {
+                        // notify the server of the bytes are being sent
+                        if (fileSize <= 1024)
+                            received = "last";
+                        else                        
+                            received = "sending";
+                        message.sendMessage(received);
 
-                    // wait until server is ready for bytes to be sent
-                    hasBytes = isReady(hasBytes);
-                    
-                    //*******************INSERT ENCODING***********************
-                    
-                    // send the bytes 
-                    out.write(buffer, 0, bytesRead);
+                        // wait until server is ready for bytes to be sent
+                        isReady();                    
+                        
 
-                    // receive notification from server that bytes have been read
-                    hasBytes = hasReceived(hasBytes);
+                        //*******************INSERT ENCODING***********************
+                        
+                        // send the chunk to the server
+                        out.write(buffer, 0, bytesRead);    
 
-                    // total bytes sent
-                    fileSize -= bytesRead;
-                    bytesSent += bytesRead;
-                    System.out.println("---------> " + bytesSent + " bytes sent\n");
+                        // receive notification from server that bytes have been read
+                        received = hasReceived(received);
+                        
+                        if (received.equals("quit"))
+                            break;
+                        else if (received.equals("failed"))
+                        {
+                            System.out.println("resending bytes\n");
+                            in.reset();
+                            received = "received";
+                            continue;
+                        }
+                        
 
-                    //garbage collector should clean out the old buffer I think...
-                    //Clean out the buffer and start fresh
-                    buffer = new byte[1024];
-                } 
+                        // total bytes sent
+                        fileSize -= bytesRead;
+                        bytesSent += bytesRead;
+                        System.out.println("---------> " + bytesSent + " bytes received\n");
+
+                        //garbage collector should clean out the old buffer I think...
+                        //Clean out the buffer and start fresh
+                        buffer = new byte[1024];
+                        break;
+                    } 
+                }
             }
             out.flush();
             in.close();
             in = null;
-            System.out.println("File uploaded!");
+            if (received.equals("quit"))
+            {
+                System.out.println("Receiver could not download the file and "
+                        + "then quitted.\nGuess I'll quit too."); 
+                exit();
+            }
+            else 
+                System.out.println("File uploaded and received successfully!");
         } catch (NullPointerException ex){
             menu();
         }           
@@ -227,32 +247,33 @@ public class Client
     }
     
     // Print and get answer from server if they are ready to receeive bytes    
-    public String isReady(String hasBytes) throws InterruptedException
+    public void isReady() throws InterruptedException
     {        
-        System.out.println("Waiting on server...");
-        while (!hasBytes.equals("ready"))
+        System.out.println("ready?");
+        String ready = "";
+        while (!ready.equals("ready"))
         {
-            Thread.sleep(10);
-            boolean hasMsg = message.hasMessage();
-            while(!hasMsg){ hasMsg = message.hasMessage(); }
-            hasBytes = message.readMessage();
+            Thread.sleep(10); //10ms
+            ready = message.readMessage();
         }
-        return hasBytes;
     }
     
     
     // Print and get answer from server if they received bytes    
-    public String hasReceived(String hasBytes) throws InterruptedException
-    {
+    public String hasReceived(String received) throws InterruptedException
+    {        
         System.out.println("received?");  
-        while (!hasBytes.equals("received"))
+        while (!received.equals("received") && !received.equals("failed") 
+                && !received.equals("quit"))
         {   
-            Thread.sleep(10); // 1s sleep 
-            boolean hasMsg = message.hasMessage();
-            while(!hasMsg){ hasMsg = message.hasMessage(); }
-            hasBytes = message.readMessage();
-        }
-        return hasBytes;
+            Thread.sleep(10); //10ms
+            received = message.readMessage();
+        }        
+        
+        if (received.equals("failed") || received.equals("quit"))
+            System.out.println("failed");       
+        
+        return received;
     }
         
     // Exit the program

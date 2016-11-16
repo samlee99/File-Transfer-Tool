@@ -23,14 +23,7 @@ public class Server
     private ServerSocket server;
     private Scanner sc = new Scanner(System.in);
     Message message;
-    /*public static void main(String[] args)
-    {
-        Server srv = new Server();
-        srv.start(8888);
-        srv.authenticate();
-        srv.menu();
-    }*/
-        
+
     // Start the server and search for a client
     public void start(int port) 
     {
@@ -48,45 +41,23 @@ public class Server
     // Start menu for choosing to download a file or quit the program
     public void menu()
     {             
-        System.out.println("\n1. Download file");
-        System.out.println("2. Exit");
-        int choice = sc.nextInt();
-        sc.nextLine();
-        
-        while(choice != 2){
-            switch(choice)
+        try {
+            System.out.println("\nWaiting to receive file...");
+            String uploading = "";
+            while (!uploading.equals("uploading")) 
             {
-                case 1:
-                    readFile();
-                    break;
-
-                case 2:
-                    exit();
-                    break;
-
-                default:
-                    System.out.println("Invalid option. Try again.");
-                    break;
+                Thread.sleep(100); // 100ms            
+                uploading = message.readMessage();
             }
-            choice = sc.nextInt();
-            sc.nextLine();
+        } 
+        catch (InterruptedException ex) {
+            Logger.getLogger(Server.class.getName()).log(Level.SEVERE, null, ex);
         }
+        System.out.println("Enter file name and directory");
+        readFile();
+        menu();
     }
-    
-    // Stored  username is returned;
-    public String getUser()
-    {
-        String user = "test";
-        return user;
-    }
-    
-    // Stored Salted/Hashed password is returned
-    public String getPass()
-    {
-        String pass = "380";
-        return pass;
-    }
-    
+       
     // Authenticate login information
     public void authenticate()
     {
@@ -178,59 +149,87 @@ public class Server
         }
         return null;
     }
-    
-    // Read a file from the client and save it at the given file path
+     // Read a file from the client and save it at the given file path
     public void readFile()
     {
         try { 
             DataInputStream in = new DataInputStream(sock.getInputStream());         
             byte[] buffer = new byte[1024];            
             int bytesRead;
-            
             File file = saveFile();
             DataOutputStream out = new DataOutputStream(new FileOutputStream(file));        
+            int attempts = 0;
             int fileSize = 0;            
-            String hasBytes = "";
+            String sending = "";
             boolean lastChunk = false;
+            boolean integrity = true;   // should be changed to false once decode code is inserted
             
-            while(lastChunk == false)
+            while(lastChunk == false && attempts < 4)
             {
-                boolean hasMsg = message.hasMessage();
-                while(!hasMsg){ hasMsg = message.hasMessage(); }
-                hasBytes = message.readMessage();                         
-                if (hasBytes.equals("sending") || hasBytes.equals("last")) 
-                {
-                    if (hasBytes.equals("last"))
-                        lastChunk = true;
-                    
-                    // tell client the server is ready to receive bytes                 
-                    isReady();
-                    
-                    // wait for client to send bytes
-                    Thread.sleep(10);
-                    
-                    // read bytes sent by client          
-                    bytesRead = in.read(buffer);
-                  
-                    //*******************INSERT DECODING***********************
-                    
-                    out.write(buffer, 0, bytesRead);
-                    
-                    //notify client bytes have been received
-                    hasReceived();                 
-                    
-                    // total bytes received
-                    fileSize += bytesRead;                    
-                    System.out.println("---------> " + fileSize + " bytes received");                    
-                    
-                    // reset buffer
-                    buffer = new byte[1024];
+                while (true)
+                {                    
+                    sending = message.readMessage();                         
+                    if (sending.equals("sending") || sending.equals("last")) 
+                    {
+                        if (sending.equals("last"))
+                            lastChunk = true;
+
+                        // tell client the server is ready to receive chunk                 
+                        isReady();
+                        // wait for client to send chunk 
+                        Thread.sleep(100); //100ms - might need to change this depending on encoding time
+                        // read bytes sent by client          
+                        bytesRead = in.read(buffer);
+
+                        //*******************INSERT DECODING***********************
+                        // change integrity to false if decoding doesn't match     
+                        //notify client chunk have been received or failed to be received                            
+                        if (integrity == false)
+                        {                              
+                            attempts++;
+                            if (attempts < 4)
+                            {
+                                hasReceived(integrity, attempts);
+                                System.out.println("making attempt# " + attempts 
+                                        + " to redownload chunk.");  
+                                continue;   // reset the loop
+                            }
+                            else 
+                            {
+                                hasReceived(integrity, attempts);
+                                break;
+                            }
+                        }                        
+                        hasReceived(integrity, attempts);                        
+                        
+                        // write chunk to file
+                        out.write(buffer, 0, bytesRead);           
+                        
+                        // total chunk received
+                        fileSize += bytesRead;                    
+                        System.out.println("---------> " + fileSize + " bytes received");                    
+
+                        // reset buffer
+                        buffer = new byte[1024];
+                        break;
+                    }
                 }
-            }                        
-            System.out.println("\nDownloaded file of size " + fileSize + " bytes");
+                if (attempts > 3)
+                    break;
+                else
+                    attempts = 0;
+            } 
             out.flush();     
             out.close();
             out = null;
+            if (attempts > 3)
+            {
+                System.out.println("I've tried 3 times already to download this chunk."
+                        + " There won't be a 4th. \nI quit.");
+                exit();
+            }
+            else 
+                System.out.println("\nDownloaded file of size " + fileSize + " bytes");
         } catch (NullPointerException ex){
             menu();
         }           
@@ -240,17 +239,34 @@ public class Server
     }
     
     // Print and send message to client that server is ready to receive bytes
-    public void isReady() {
-        String hasBytes = "\nready";
-        message.sendMessage(hasBytes);
-        System.out.println(hasBytes);
+    public void isReady()
+    {        
+        String ready = "\nready";
+        message.sendMessage(ready);
+        System.out.println(ready);
     }
     
     // Print and send message to client that server has received bytes
-    public void hasReceived() {
-        String hasBytes = "received";
-        System.out.println(hasBytes);
-        message.sendMessage("received");             
+    public void hasReceived(boolean integrity, int attempts) 
+    {
+        String received = "";
+        if (attempts > 3) 
+        {             
+            System.out.println("failed");
+            message.sendMessage("quit"); 
+        }
+        else if (integrity == false)
+        {            
+            received = "failed";
+            System.out.println(received);
+            message.sendMessage("failed");  
+        }
+        else 
+        {        
+            received = "received";
+            System.out.println(received);
+            message.sendMessage("received");  
+        }
     }
     
     // Exit the program
