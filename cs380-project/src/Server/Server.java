@@ -52,8 +52,7 @@ public class Server
         } 
         catch (InterruptedException ex) {
             Logger.getLogger(Server.class.getName()).log(Level.SEVERE, null, ex);
-        }
-        System.out.println("Enter file name and directory");
+        }        
         readFile();
         menu();
     }
@@ -149,22 +148,26 @@ public class Server
         }
         return username;
     }   
-    // Enter name and directory for the file to save
+	
+    // Get the filename of the file to be saved and return the file
     public File saveFile()
     {
-        JFileChooser fc = new JFileChooser();
-        try {
-            if (fc.showSaveDialog(null) != JFileChooser.APPROVE_OPTION) 
-                throw new FileNotFoundException();
-
-            File file = fc.getSelectedFile();
-            return file;
-
-        } catch (FileNotFoundException e) {
-            System.out.println("Invalid file.");
+        try {			
+			String filename = "";
+            while (filename.equals("") || filename.equals("uploading")) 
+            {
+                Thread.sleep(100); // 100ms            
+                filename = message.readMessage();
+            }
+			File file = new File(filename);
+			return file;
+		}
+        catch (InterruptedException ex) {
+            Logger.getLogger(Server.class.getName()).log(Level.SEVERE, null, ex);
         }
         return null;
     }
+	
      // Read a file from the client and save it at the given file path
     public void readFile()
     {
