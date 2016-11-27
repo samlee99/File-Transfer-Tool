@@ -178,6 +178,13 @@ public class Client
                 throw new FileNotFoundException();
             
             File file = fc.getSelectedFile();
+			// Tell server a file is being uploaded
+			message.sendMessage("uploading");
+			
+			String filename = file.getName();			
+			System.out.println("Filename: " + filename);
+			// Send the filename that is being uploaded
+			message.sendMessage(file.getName());
             sendFile(file);
             
         } catch (FileNotFoundException e) {
@@ -188,8 +195,6 @@ public class Client
     // Send the file at the given directory
     public void sendFile(File file)
     {
-        // Tell server a file is being uploaded
-        message.sendMessage("uploading");
         try {             
             byte[] buffer = new byte[1024];
             BufferedInputStream in = new BufferedInputStream (new FileInputStream(file));
