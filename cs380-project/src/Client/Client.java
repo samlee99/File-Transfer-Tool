@@ -24,11 +24,27 @@ public class Client
     Message message;
     Base64 b64;
     xorCipher xor;
+	byte[] key;
+	
     // Connect the client to the server
-    public boolean start(String host, int port) 
+    public boolean start(String host, int port) throws IOException
     {
         b64 = new Base64();
         xor = new xorCipher();
+		
+		//Reads the key into a byte array
+		FileInputStream fileInputStream = null;
+		//Just change the directory to where the key is in
+		File file = new File("C:\\Users\\PC\\Documents\\GitHub\\New folder\\cs380-project\\cs380-project\\src\\Client\\key.txt");
+		key = new byte[(int)file.length()];
+		try{
+			fileInputStream = new FileInputStream(file);
+			fileInputStream.read(key);
+			fileInputStream.close();
+		}catch(FileNotFoundException fileNotFoundException){
+			fileNotFoundException.printStackTrace();
+		}
+		
         boolean started = true;
         try {          
             sock = new Socket(host, port);
@@ -228,7 +244,7 @@ public class Client
                         // notify the server of the bytes are being sent
                         if (fileSize <= 1024)
                             received = "last";
-                        else                        
+                        else 
                             received = "sending";
                         message.sendMessage(received);
 
@@ -237,11 +253,28 @@ public class Client
                         
 
                         //*******************INSERT ENCODING***********************
+						String checksum = sha1.encode(buffer);
+						
+						//need to send this checksum to client for verification
+						byte[] byteChecksum = checksum.getBytes(); 
+						
+						//Encrypt the chunk by XORing with the key
+						xor.xorCipher(buffer, key);
+						//Encrypt the checksum by XORing with the key
+						xor.xorCipher(byteChecksum, key);
+						
+						message.sendMessage(encode);
                         if(encode){
-                            
+							String stringB64Hash = b64.encode(buffer);
+							out.writeUTF(stringB64Hash);
                         }
+						
+						
                         // send the chunk to the server
                         out.write(buffer, 0, bytesRead);    
+						
+						//send the hash to the server somehow
+						
 
                         // receive notification from server that bytes have been read
                         received = hasReceived(received);

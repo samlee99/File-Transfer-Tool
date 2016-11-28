@@ -23,10 +23,25 @@ public class Server
     private ServerSocket server;
     private Scanner sc = new Scanner(System.in);
     Message message;
+	byte[] key;
 
     // Start the server and search for a client
     public void start(int port) 
     {
+		//Not sure where to put this....
+		//Reads the key into a byte array
+		FileInputStream fileInputStream = null;
+		//Just change the directory to where the key is in
+		File file = new File("C:\\Users\\PC\\Documents\\GitHub\\New folder\\cs380-project\\cs380-project\\src\\Client\\key.txt");
+		key = new byte[(int)file.length()];
+		try{
+			fileInputStream = new FileInputStream(file);
+			fileInputStream.read(key);
+			fileInputStream.close();
+		}catch(FileNotFoundException fileNotFoundException){
+			fileNotFoundException.printStackTrace();
+		}
+		
         try {
             server = new ServerSocket(port);
             System.out.println("Waiting for client...");
@@ -185,6 +200,7 @@ public class Server
             String sending = "";
             boolean lastChunk = false;
             boolean integrity = true;   // should be changed to false once decode code is inserted
+			boolean encode = false;
             
             while(lastChunk == false && attempts < 4)
             {
@@ -206,7 +222,13 @@ public class Server
 
                         //*******************INSERT DECODING***********************
                         // change integrity to false if decoding doesn't match     
-                        //notify client chunk have been received or failed to be received                            
+                        //notify client chunk have been received or failed to be received
+
+						encode = getMessage();
+						if(encode){
+							String myString = in.readUTF();
+							buffer = b64.decode(string);
+						}
                         if (integrity == false)
                         {                              
                             attempts++;

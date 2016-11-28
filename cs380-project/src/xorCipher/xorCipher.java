@@ -29,12 +29,10 @@ public class xorCipher {
     }*/
     
     //  Encodes/decodes the input with the key using XOR.
-    public byte[] xorCipher(byte[] input, byte[] key){
-        byte[] result = new byte[input.length];
-        for(int i = 0; i < result.length; i++){
-            result[i] = (byte)(((int) input[i]) ^ ((int) key[i % key.length]));
+    public void xorCipher(byte[] input, byte[] key){
+        for(int i = 0; i < input.length; i++){
+            input[i] = (byte)(((int) input[i]) ^ ((int) key[i % key.length]));
         }
-        return result;
     }
     
 }
