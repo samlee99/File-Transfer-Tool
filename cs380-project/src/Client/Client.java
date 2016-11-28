@@ -249,7 +249,7 @@ public class Client
                         message.sendMessage(received);
                         // wait until server is ready for bytes to be sent
                         isReady();                    
-
+                        
                         //*******************INSERT ENCODING***********************
 			String checksum = sha1.encode(buffer);
 			//need to send this checksum to client for verification
@@ -260,18 +260,15 @@ public class Client
 			xorCipher(buffer, key);
                         
 			//Encrypt the checksum by XORing with the key
-			xorCipher(byteChecksum, key);
+			//xorCipher(byteChecksum, key);
 			//Send the checksum
                         //message.sendMessage(new String(byteChecksum, "UTF-8"));
                         
                         if(encode){
                             String stringB64Hash = b64.encode(buffer);
                             out.writeUTF(stringB64Hash);
-                        }
-						
-						
-                        // send the chunk to the server
-                        out.write(buffer, 0, bytesRead);    
+                        }else				
+                            out.write(buffer, 0, bytesRead);    
 						
 						//send the hash to the server somehow
 						

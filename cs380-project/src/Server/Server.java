@@ -218,18 +218,19 @@ public class Server
                         // tell client the server is ready to receive chunk                 
                         isReady();
                         // wait for client to send chunk 
-                        Thread.sleep(100); //100ms - might need to change this depending on encoding time
-                        // read bytes sent by client          
-                        bytesRead = in.read(buffer);
+                       // Thread.sleep(500); //100ms - might need to change this depending on encoding time
+			if(encode){
+                            String myString = in.readUTF();
+                            buffer = b64.decode(myString);
+                            bytesRead = buffer.length;
+			}else      
+                            bytesRead = in.read(buffer);
 
                         //*******************INSERT DECODING***********************
                         // change integrity to false if decoding doesn't match     
                         //notify client chunk have been received or failed to be received
 						//
-						if(encode){
-							String myString = in.readUTF();
-							buffer = b64.decode(myString);
-						}
+
 						
                         //Decode the chunk with the key
 			xorCipher(buffer, key);
@@ -288,7 +289,7 @@ public class Server
         } catch (NullPointerException ex){
             menu();
         }           
-          catch (IOException | InterruptedException ex) {
+          catch (IOException ex) {
             Logger.getLogger(Server.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
