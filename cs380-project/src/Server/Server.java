@@ -196,13 +196,13 @@ public class Server
             byte[] buffer = new byte[1024];            
             int bytesRead;
             File file = saveFile();
+            boolean encode = Boolean.parseBoolean(getMessage());
             DataOutputStream out = new DataOutputStream(new FileOutputStream(file));        
             int attempts = 0;
             int fileSize = 0;            
             String sending = "";
             boolean lastChunk = false;
             boolean integrity = true;   // should be changed to false once decode code is inserted
-			boolean encode = false;
             
             while(lastChunk == false && attempts < 4)
             {
@@ -225,7 +225,7 @@ public class Server
                         //*******************INSERT DECODING***********************
                         // change integrity to false if decoding doesn't match     
                         //notify client chunk have been received or failed to be received
-						//encode = Boolean.parseBoolean(getMessage());
+						//
 						if(encode){
 							String myString = in.readUTF();
 							buffer = b64.decode(myString);
@@ -234,8 +234,10 @@ public class Server
                         //Decode the chunk with the key
 			xorCipher(buffer, key);
 			
-						//Decode the hash/checksum with the key
-						//TODO: implement xorCipher(hash,key)
+                        //byte[] checksum = getMessage().getBytes("UTF-8");
+                        //xorCipher(checksum, key);
+                        //Decode the hash/checksum with the key
+			//TODO: implement xorCipher(hash,key)
 						
                         if (integrity == false)
                         {                              

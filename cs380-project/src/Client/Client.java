@@ -211,6 +211,7 @@ public class Client
 			System.out.println("Filename: " + filename);
 			// Send the filename that is being uploaded
 			message.sendMessage(file.getName());
+                        message.sendMessage(String.valueOf(encode));
             sendFile(file, encode);
             
         } catch (FileNotFoundException e) {
@@ -250,19 +251,22 @@ public class Client
                         isReady();                    
 
                         //*******************INSERT ENCODING***********************
-			//String checksum = sha1.encode(buffer);
-						
+			String checksum = sha1.encode(buffer);
 			//need to send this checksum to client for verification
-			//byte[] byteChecksum = checksum.getBytes(); 
+			byte[] byteChecksum = checksum.getBytes("UTF-8");
+                        //System.out.println(checksum + " - " + byteChecksum.length);
+                        //Add the two byte arrays
 			//Encrypt the chunk by XORing with the key
 			xorCipher(buffer, key);
+                        
 			//Encrypt the checksum by XORing with the key
-			//xorCipher(byteChecksum, key);
-			
-			//message.sendMessage(String.valueOf(encode));
+			xorCipher(byteChecksum, key);
+			//Send the checksum
+                        //message.sendMessage(new String(byteChecksum, "UTF-8"));
+                        
                         if(encode){
-							String stringB64Hash = b64.encode(buffer);
-							out.writeUTF(stringB64Hash);
+                            String stringB64Hash = b64.encode(buffer);
+                            out.writeUTF(stringB64Hash);
                         }
 						
 						
