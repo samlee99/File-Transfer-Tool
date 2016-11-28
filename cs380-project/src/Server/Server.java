@@ -28,7 +28,7 @@ public class Server
     public void start(int port) 
     {
         try {
-            server = new ServerSocket(8888);
+            server = new ServerSocket(port);
             System.out.println("Waiting for client...");
             sock = server.accept();
             System.out.println("Connected to client.");
@@ -64,9 +64,9 @@ public class Server
         //boolean clientExit = false;
         boolean loggedOn = false;
         while(!loggedOn){
-            boolean clientRdy = false;
-            while(!clientRdy){ clientRdy = message.hasMessage(); }    
-            String cmsg = message.readMessage();     
+            //boolean clientRdy = false;
+            //while(!clientRdy){ clientRdy = message.hasMessage(); }    
+            String cmsg = getMessage();
             switch(cmsg){
                 case "create":
                     createUser(ua);
@@ -92,14 +92,14 @@ public class Server
             boolean login = false;
            // while(!login){
                 message.sendMessage("Username: ");
-                boolean hasMsg = message.hasMessage();
-                while(!hasMsg){ hasMsg = message.hasMessage(); }
-                String username = message.readMessage();
+                //boolean hasMsg = message.hasMessage();
+                ///while(!hasMsg){ hasMsg = message.hasMessage(); }
+                String username = getMessage();
                 System.out.println(username + " is trying to login");
                 message.sendMessage("Password: ");
-                hasMsg = message.hasMessage();
-                while(!hasMsg){ hasMsg = message.hasMessage(); }
-                String password = message.readMessage();
+                //hasMsg = message.hasMessage();
+                //while(!hasMsg){ hasMsg = message.hasMessage(); }
+                String password = getMessage();
                 System.out.println("With the password " + password);
                 boolean userLogin = ua.login(username, password);
                 if (userLogin)
@@ -124,9 +124,9 @@ public class Server
         //String username = message.readMessage();
         String username = createUsername(ua);
         message.sendMessage("Password");
-        boolean hasMsg = message.hasMessage();
-        while(!hasMsg){ hasMsg = message.hasMessage(); }       
-        String password = message.readMessage();
+        //boolean hasMsg = message.hasMessage();
+        //while(!hasMsg){ hasMsg = message.hasMessage(); }       
+        String password = getMessage();
         boolean created = ua.createUser(username, password);
         if(created) message.sendMessage("Created user!");
         else message.sendMessage("Could not create user!");
@@ -136,9 +136,9 @@ public class Server
         boolean goodname = false;
         while(!goodname){
           message.sendMessage("Username");
-          boolean hasMsg = message.hasMessage();
-          while(!hasMsg){ hasMsg = message.hasMessage(); }  
-          username = message.readMessage();
+          //boolean hasMsg = message.hasMessage();
+          //while(!hasMsg){ hasMsg = message.hasMessage(); }  
+          username = getMessage();
           goodname = ua.usernameAvailable(username);
           if(goodname == true){
               message.sendMessage("Username is available!");
@@ -153,15 +153,18 @@ public class Server
     public File saveFile()
     {
         try {			
-			String filename = "";
+	    String filename = "";
             while (filename.equals("") || filename.equals("uploading")) 
             {
                 Thread.sleep(100); // 100ms            
-                filename = message.readMessage();
+                //filename = message.readMessage();
+                filename = getMessage();
             }
-			File file = new File(filename);
-			return file;
-		}
+                filename = "downloads\\" + filename;
+		File file = new File(filename);
+                file.getParentFile().mkdir();
+                return file;
+            }
         catch (InterruptedException ex) {
             Logger.getLogger(Server.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -186,8 +189,9 @@ public class Server
             while(lastChunk == false && attempts < 4)
             {
                 while (true)
-                {                    
-                    sending = message.readMessage();                         
+                {     
+                    sending = getMessage();
+                    //sending = message.readMessage();                         
                     if (sending.equals("sending") || sending.equals("last")) 
                     {
                         if (sending.equals("last"))
@@ -287,7 +291,26 @@ public class Server
             message.sendMessage("received");  
         }
     }
-    
+
+        //  Encodes/decodes the input with the key using XOR.
+    public byte[] xorCipher(byte[] input, byte[] key){
+        byte[] result = new byte[input.length];
+        for(int i = 0; i < result.length; i++){
+            result[i] = (byte)(((int) input[i]) ^ ((int) key[i % key.length]));
+        }
+        return result;
+    }
+
+    public String getMessage(){
+        boolean hasMsg = message.hasMessage();
+        while(!hasMsg){ hasMsg = message.hasMessage(); }       
+        String msg = message.readMessage();
+        if(msg.equals("disconnected")){
+            exit();
+        }
+        return msg;
+        //disconnected
+    }    
     // Exit the program
     public void exit()
     {
@@ -298,7 +321,7 @@ public class Server
             server.close();
             System.exit(0);
         } catch (IOException ex) {
-            Logger.getLogger(Server.class.getName()).log(Level.SEVERE, null, ex);
+           // Logger.getLogger(Server.class.getName()).log(Level.SEVERE, null, ex);
         }        
     }
     

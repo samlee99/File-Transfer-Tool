@@ -11,7 +11,8 @@ import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.JFileChooser;
-
+import Base64.Base64;
+import xorCipher.xorCipher;
 /**
  *
  * @author Alexx
@@ -21,10 +22,13 @@ public class Client
     private Socket sock;
     private Scanner sc = new Scanner(System.in);
     Message message;
-    
+    Base64 b64;
+    xorCipher xor;
     // Connect the client to the server
     public boolean start(String host, int port) 
     {
+        b64 = new Base64();
+        xor = new xorCipher();
         boolean started = true;
         try {          
             sock = new Socket(host, port);
@@ -74,9 +78,9 @@ public class Client
     }
     public void createUser(Console console){
         createUsername();
-        boolean hasMsg = message.hasMessage();
-        while(!hasMsg){ hasMsg = message.hasMessage(); }
-        System.out.println(message.readMessage());
+        //boolean hasMsg = message.hasMessage();
+        //while(!hasMsg){ hasMsg = message.hasMessage(); }
+        System.out.println(getMessage());
         boolean goodpass = false;
         String password = "";
         while(!goodpass){
@@ -86,8 +90,8 @@ public class Client
             else goodpass = true;
         }
         message.sendMessage(password);    
-        while(!hasMsg){ hasMsg = message.hasMessage(); }
-        String msg = message.readMessage();
+        //while(!hasMsg){ hasMsg = message.hasMessage(); }
+        String msg = getMessage();
         if(msg.equals("Created user!")){
             System.out.println(msg);
         }else System.out.println(msg);
@@ -96,14 +100,14 @@ public class Client
     public void createUsername(){
         boolean goodname = false;
         while(!goodname){
-            boolean hasMsg = message.hasMessage();
-            while(!hasMsg){ hasMsg = message.hasMessage(); }
-            System.out.println(message.readMessage()); 
+            //boolean hasMsg = message.hasMessage();
+            //while(!hasMsg){ hasMsg = message.hasMessage(); }
+            System.out.println(getMessage()); 
             String username = sc.nextLine();    
             message.sendMessage(username);    
-            hasMsg = message.hasMessage();
-            while(!hasMsg){ hasMsg = message.hasMessage(); }
-            String msg = message.readMessage();
+            //hasMsg = message.hasMessage();
+            //while(!hasMsg){ hasMsg = message.hasMessage(); }
+            String msg = getMessage();
             if(msg.equals("Username is available!")){
                 System.out.println(msg);
                 goodname = true;
@@ -117,22 +121,22 @@ public class Client
     public boolean login(Console console){
             boolean login = false;
             //while(!login){
-                boolean hasMsg = message.hasMessage();
-                while(!hasMsg){ hasMsg = message.hasMessage(); }
-                System.out.println(message.readMessage());
+                //boolean hasMsg = message.hasMessage();
+                //while(!hasMsg){ hasMsg = message.hasMessage(); }
+                System.out.println(getMessage());
                 String username = sc.nextLine();
                 message.sendMessage(username);
 
-                hasMsg = message.hasMessage();
-                while(!hasMsg){ hasMsg = message.hasMessage(); }
-                System.out.println(message.readMessage());
+                //hasMsg = message.hasMessage();
+                //while(!hasMsg){ hasMsg = message.hasMessage(); }
+                System.out.println(getMessage());
                 char[] hiddenPassword = console.readPassword();
                 String password = new String(hiddenPassword);
                 message.sendMessage(password);
                 
-                hasMsg = message.hasMessage();
-                while(!hasMsg){ hasMsg = message.hasMessage(); }
-                String msg = message.readMessage();
+                //hasMsg = message.hasMessage();
+                //while(!hasMsg){ hasMsg = message.hasMessage(); }
+                String msg = getMessage();
                 if (!msg.equals("Logged in successfully!")) 
                 {
                     System.out.println("Log in failed.");
@@ -157,8 +161,15 @@ public class Client
 
         switch (choice) 
         {
-            case 1:                             
-                upload();
+            case 1:   
+                int encode = -1;
+                System.out.println("Would you like to encode? (0 for no, 1 for yes)");
+                encode = sc.nextInt();
+                sc.nextLine();
+                boolean encoded;
+                if(encode == 1) encoded = true;
+                else encoded = false;
+                upload(encoded);
                 menu();
                 break;
             case 2:
@@ -170,7 +181,7 @@ public class Client
        
     }
         
-    public void upload()
+    public void upload(boolean encode)
     {
         JFileChooser fc = new JFileChooser();
         try {
@@ -185,7 +196,7 @@ public class Client
 			System.out.println("Filename: " + filename);
 			// Send the filename that is being uploaded
 			message.sendMessage(file.getName());
-            sendFile(file);
+            sendFile(file, encode);
             
         } catch (FileNotFoundException e) {
             System.out.println("Invalid file.");
@@ -193,7 +204,7 @@ public class Client
     }
     
     // Send the file at the given directory
-    public void sendFile(File file)
+    public void sendFile(File file, boolean encode)
     {
         try {             
             byte[] buffer = new byte[1024];
@@ -226,7 +237,9 @@ public class Client
                         
 
                         //*******************INSERT ENCODING***********************
-                        
+                        if(encode){
+                            
+                        }
                         // send the chunk to the server
                         out.write(buffer, 0, bytesRead);    
 
@@ -283,7 +296,8 @@ public class Client
         while (!ready.equals("ready"))
         {
             Thread.sleep(10); //10ms
-            ready = message.readMessage();
+            ready = getMessage();
+            //ready = message.readMessage();
         }
     }
     
@@ -296,7 +310,8 @@ public class Client
                 && !received.equals("quit"))
         {   
             Thread.sleep(10); //10ms
-            received = message.readMessage();
+            received = getMessage();
+            //received = message.readMessage();
         }        
         
         if (received.equals("failed") || received.equals("quit"))
@@ -304,7 +319,26 @@ public class Client
         
         return received;
     }
-        
+    
+        //  Encodes/decodes the input with the key using XOR.
+    public byte[] xorCipher(byte[] input, byte[] key){
+        byte[] result = new byte[input.length];
+        for(int i = 0; i < result.length; i++){
+            result[i] = (byte)(((int) input[i]) ^ ((int) key[i % key.length]));
+        }
+        return result;
+    }
+    
+    public String getMessage(){
+        boolean hasMsg = message.hasMessage();
+        while(!hasMsg){ hasMsg = message.hasMessage(); }       
+        String msg = message.readMessage();
+        if(msg.equals("disconnected")){
+            exit();
+        }
+        return msg;
+        //disconnected
+    }   
     // Exit the program
     public void exit()
     {

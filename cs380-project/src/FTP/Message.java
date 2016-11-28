@@ -10,6 +10,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintStream;
 import java.net.Socket;
+import java.net.SocketException;
 import java.util.Queue;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -34,7 +35,7 @@ public class Message {
             bf = new BufferedReader(new InputStreamReader(sock.getInputStream()));
             ps = new PrintStream(sock.getOutputStream());
         } catch (IOException ex) {
-            Logger.getLogger(Message.class.getName()).log(Level.SEVERE, null, ex);
+            //Logger.getLogger(Message.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
         // Send a string to the client 
@@ -51,8 +52,10 @@ public class Message {
         try {
             msg = bf.readLine();
         } catch (IOException ex) {
-            Logger.getLogger(Message.class.getName()).log(Level.SEVERE, null, ex);
-        }
+            ps.println("disconnected");
+            ps.flush();
+            //Logger.getLogger(Message.class.getName()).log(Level.SEVERE, null, ex);
+        } 
         return msg;
         
     }
@@ -67,7 +70,9 @@ public class Message {
             bf.reset();
             if(hasMsg) return true;
         } catch (IOException ex) {
-            Logger.getLogger(Message.class.getName()).log(Level.SEVERE, null, ex);
+            ps.println("disconnected");
+            ps.flush();
+           // Logger.getLogger(Message.class.getName()).log(Level.SEVERE, null, ex);
         }
         return false;
     }

@@ -1,10 +1,11 @@
+package xorCipher;
 import java.io.*;
 import java.util.*;
 
 public class xorCipher {
 
 	//Testing random inputs
-    public static void main(String[] args) throws UnsupportedEncodingException{
+    /*public static void main(String[] args) throws UnsupportedEncodingException{
         String input = "ABC";
         String key = "k";
         byte[] inputBytes = input.getBytes("UTF-8");
@@ -25,10 +26,10 @@ public class xorCipher {
         String s = new String(xorResult);
         System.out.println(s);
         
-    }
+    }*/
     
     //  Encodes/decodes the input with the key using XOR.
-    private static byte[] xorCipher(byte[] input, byte[] key){
+    public byte[] xorCipher(byte[] input, byte[] key){
         byte[] result = new byte[input.length];
         for(int i = 0; i < result.length; i++){
             result[i] = (byte)(((int) input[i]) ^ ((int) key[i % key.length]));
