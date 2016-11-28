@@ -34,7 +34,7 @@ public class Server
 		//Reads the key into a byte array
 		FileInputStream fileInputStream = null;
 		//Just change the directory to where the key is in
-		File file = new File("C:\\Users\\PC\\Documents\\GitHub\\New folder\\cs380-project\\cs380-project\\src\\Client\\key.txt");
+		File file = new File("key.txt");
 		key = new byte[(int)file.length()];
 		try{
 			fileInputStream = new FileInputStream(file);
