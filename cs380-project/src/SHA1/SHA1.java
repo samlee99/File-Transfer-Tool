@@ -1,4 +1,4 @@
-package com.company;
+package SHA1;
 
 public class SHA1 {
 

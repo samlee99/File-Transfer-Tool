@@ -7,27 +7,24 @@ package Server;
 
 import java.math.BigInteger;
 import java.security.MessageDigest;
+import SHA1.SHA1;
 
 /**
  *
  * @author andre
  */
 public class CustomHash {
-    //Implementation of the
-    public String hash(String toHash){
-        String hash = "" + toHash;
-        //
-        return hash;
-    }
     
+	SHA1 sha1;
+	
+	
     public String passHash(String toHash){
         //TODO: REMOVE THIS!!!!!
         //Seriously, we need a custom hash, this is just for password testing
-        String hash = toHash;
+        byte[] byteHash = toHash.getBytes();
+		String hash = "";
         try{
-            MessageDigest mdEnc = MessageDigest.getInstance("MD5"); 
-            mdEnc.update(toHash.getBytes(), 0, toHash.length());
-            hash = new BigInteger(1, mdEnc.digest()).toString(16); // Hash value            
+            hash = sha1.encode(byteHash);
         }catch(Exception e){return hash;}
         return hash;
     }
