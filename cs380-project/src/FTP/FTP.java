@@ -6,6 +6,7 @@
 package FTP;
 import client.Client;
 import java.io.Console;
+import java.io.*;
 import java.util.Scanner;
 import server.Server;
 /**
@@ -13,7 +14,7 @@ import server.Server;
  * @author andrew
  */
 public class FTP {
-    public static void main(String[] args) throws InterruptedException
+    public static void main(String[] args) throws InterruptedException, IOException
     {
         Console console = System.console();
         if(console == null){
@@ -36,7 +37,7 @@ public class FTP {
     private static void help(){
         System.out.println("Usage: \"client\" or \"server\"");
     }
-    private void client(Console console) throws InterruptedException{
+    private void client(Console console) throws InterruptedException, IOException{
         Scanner sc = new Scanner(System.in);
         System.out.println("Enter host: ");
         String host = sc.nextLine();
@@ -58,7 +59,7 @@ public class FTP {
         }
         cln.loginMenu(console);
     }
-    private void server(){
+    private void server() throws IOException{
         Scanner sc = new Scanner(System.in);       
         Server srv = new Server();
         System.out.println("Enter a port to listen to:");

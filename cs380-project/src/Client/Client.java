@@ -13,6 +13,7 @@ import java.util.logging.Logger;
 import javax.swing.JFileChooser;
 import Base64.Base64;
 import xorCipher.xorCipher;
+import SHA1.SHA1;
 /**
  *
  * @author Alexx
@@ -24,6 +25,7 @@ public class Client
     Message message;
     Base64 b64;
     xorCipher xor;
+	SHA1 sha1;
 	byte[] key;
 	
     // Connect the client to the server
@@ -263,7 +265,7 @@ public class Client
 						//Encrypt the checksum by XORing with the key
 						xor.xorCipher(byteChecksum, key);
 						
-						message.sendMessage(encode);
+						message.sendMessage(String.valueOf(encode));
                         if(encode){
 							String stringB64Hash = b64.encode(buffer);
 							out.writeUTF(stringB64Hash);

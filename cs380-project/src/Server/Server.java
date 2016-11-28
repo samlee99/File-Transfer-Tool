@@ -12,6 +12,7 @@ import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.*;
+import Base64.Base64;
 
 /**
  *
@@ -24,9 +25,10 @@ public class Server
     private Scanner sc = new Scanner(System.in);
     Message message;
 	byte[] key;
+	Base64 b64;
 
     // Start the server and search for a client
-    public void start(int port) 
+    public void start(int port) throws IOException
     {
 		//Not sure where to put this....
 		//Reads the key into a byte array
@@ -224,10 +226,10 @@ public class Server
                         // change integrity to false if decoding doesn't match     
                         //notify client chunk have been received or failed to be received
 
-						encode = getMessage();
+						encode = Boolean.parseBoolean(getMessage());
 						if(encode){
 							String myString = in.readUTF();
-							buffer = b64.decode(string);
+							buffer = b64.decode(myString);
 						}
                         if (integrity == false)
                         {                              
