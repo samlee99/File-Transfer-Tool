@@ -12,7 +12,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.JFileChooser;
 import Base64.Base64;
-import xorCipher.xorCipher;
 import SHA1.SHA1;
 /**
  *
@@ -24,7 +23,6 @@ public class Client
     private Scanner sc = new Scanner(System.in);
     Message message;
     Base64 b64;
-    xorCipher xor;
 	SHA1 sha1;
 	byte[] key;
 	
@@ -261,9 +259,9 @@ public class Client
 						byte[] byteChecksum = checksum.getBytes(); 
 						
 						//Encrypt the chunk by XORing with the key
-						xor.xorCipher(buffer, key);
+						xorCipher(buffer, key);
 						//Encrypt the checksum by XORing with the key
-						xor.xorCipher(byteChecksum, key);
+						xorCipher(byteChecksum, key);
 						
 						message.sendMessage(String.valueOf(encode));
                         if(encode){
@@ -356,12 +354,10 @@ public class Client
     }
     
         //  Encodes/decodes the input with the key using XOR.
-    public byte[] xorCipher(byte[] input, byte[] key){
-        byte[] result = new byte[input.length];
-        for(int i = 0; i < result.length; i++){
-            result[i] = (byte)(((int) input[i]) ^ ((int) key[i % key.length]));
+    public void xorCipher(byte[] input, byte[] key){
+        for(int i = 0; i < input.length; i++){
+            input[i] = (byte)(((int) input[i]) ^ ((int) key[i % key.length]));
         }
-        return result;
     }
     
     public String getMessage(){

@@ -225,12 +225,18 @@ public class Server
                         //*******************INSERT DECODING***********************
                         // change integrity to false if decoding doesn't match     
                         //notify client chunk have been received or failed to be received
-
 						encode = Boolean.parseBoolean(getMessage());
 						if(encode){
 							String myString = in.readUTF();
 							buffer = b64.decode(myString);
 						}
+						
+						//Decode the chunk with the key
+						xorCipher(buffer, key);
+						
+						//Decode the hash/checksum with the key
+						//TODO: implement xorCipher(hash,key)
+						
                         if (integrity == false)
                         {                              
                             attempts++;
@@ -317,12 +323,10 @@ public class Server
     }
 
         //  Encodes/decodes the input with the key using XOR.
-    public byte[] xorCipher(byte[] input, byte[] key){
-        byte[] result = new byte[input.length];
-        for(int i = 0; i < result.length; i++){
-            result[i] = (byte)(((int) input[i]) ^ ((int) key[i % key.length]));
+    public void xorCipher(byte[] input, byte[] key){
+        for(int i = 0; i < input.length; i++){
+            input[i] = (byte)(((int) input[i]) ^ ((int) key[i % key.length]));
         }
-        return result;
     }
 
     public String getMessage(){
