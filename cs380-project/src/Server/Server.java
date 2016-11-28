@@ -13,6 +13,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.*;
 import Base64.Base64;
+import SHA1.SHA1;
 
 /**
  *
@@ -26,6 +27,7 @@ public class Server
     Message message;
 	byte[] key;
 	Base64 b64;
+	SHA1 sha1;
 
     // Start the server and search for a client
     public void start(int port) throws IOException
@@ -192,17 +194,17 @@ public class Server
     public void readFile()
     {
         try { 
+			byte[] buffer = new byte[1024];        
             DataInputStream in = new DataInputStream(sock.getInputStream());         
-            byte[] buffer = new byte[1024];            
             int bytesRead;
             File file = saveFile();
+            boolean encode = Boolean.parseBoolean(getMessage());
             DataOutputStream out = new DataOutputStream(new FileOutputStream(file));        
             int attempts = 0;
             int fileSize = 0;            
             String sending = "";
             boolean lastChunk = false;
             boolean integrity = true;   // should be changed to false once decode code is inserted
-			boolean encode = false;
             
             while(lastChunk == false && attempts < 4)
             {
@@ -218,24 +220,34 @@ public class Server
                         // tell client the server is ready to receive chunk                 
                         isReady();
                         // wait for client to send chunk 
-                        Thread.sleep(100); //100ms - might need to change this depending on encoding time
-                        // read bytes sent by client          
-                        bytesRead = in.read(buffer);
+                       // Thread.sleep(500); //100ms - might need to change this depending on encoding time
+			
+						if(encode){
+                            bytesRead = buffer.length;
+							String myString = in.readUTF();
+							buffer = b64.decode(myString);
+							
+						}else      
+                            bytesRead = in.read(buffer);
 
                         //*******************INSERT DECODING***********************
                         // change integrity to false if decoding doesn't match     
                         //notify client chunk have been received or failed to be received
-						//encode = Boolean.parseBoolean(getMessage());
-						if(encode){
-							String myString = in.readUTF();
-							buffer = b64.decode(myString);
-						}
+						//
+
 						
                         //Decode the chunk with the key
-			xorCipher(buffer, key);
-			
-						//Decode the hash/checksum with the key
-						//TODO: implement xorCipher(hash,key)
+						xorCipher(buffer, key);
+						
+						//Verify if the checksums are equal
+//						System.out.println("buffer " + new String(buffer));
+                        String verifyChecksum = getMessage();
+						String checksum = sha1.encode(buffer);
+						System.out.println("verify Checksum " + verifyChecksum + " -- checksum " + checksum);
+						
+						if(!checksum.equals(verifyChecksum)){
+							integrity = false;
+						}
 						
                         if (integrity == false)
                         {                              
@@ -252,12 +264,16 @@ public class Server
                                 hasReceived(integrity, attempts);
                                 break;
                             }
-                        }                        
-                        hasReceived(integrity, attempts);                        
+                        }
+//						else{
+							hasReceived(integrity, attempts);           
+//						}
                         
                         // write chunk to file
                         out.write(buffer, 0, bytesRead);           
                         
+						
+						
                         // total chunk received
                         fileSize += bytesRead;                    
                         System.out.println("---------> " + fileSize + " bytes received");                    
@@ -286,7 +302,7 @@ public class Server
         } catch (NullPointerException ex){
             menu();
         }           
-          catch (IOException | InterruptedException ex) {
+          catch (IOException ex) {
             Logger.getLogger(Server.class.getName()).log(Level.SEVERE, null, ex);
         }
     }

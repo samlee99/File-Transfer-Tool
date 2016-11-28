@@ -211,6 +211,7 @@ public class Client
 			System.out.println("Filename: " + filename);
 			// Send the filename that is being uploaded
 			message.sendMessage(file.getName());
+                        message.sendMessage(String.valueOf(encode));
             sendFile(file, encode);
             
         } catch (FileNotFoundException e) {
@@ -248,29 +249,28 @@ public class Client
                         message.sendMessage(received);
                         // wait until server is ready for bytes to be sent
                         isReady();                    
-
+                        
                         //*******************INSERT ENCODING***********************
-			//String checksum = sha1.encode(buffer);
+						String checksum = sha1.encode(buffer);
 						
-			//need to send this checksum to client for verification
-			//byte[] byteChecksum = checksum.getBytes(); 
-			//Encrypt the chunk by XORing with the key
-			xorCipher(buffer, key);
-			//Encrypt the checksum by XORing with the key
-			//xorCipher(byteChecksum, key);
-			
-			//message.sendMessage(String.valueOf(encode));
+						//Encrypt the chunk by XORing with the key
+						xorCipher(buffer, key);
+                        
+						//Encrypt the checksum by XORing with the key
+						//xorCipher(byteChecksum, key);
+						//Send the checksum
+                        //message.sendMessage(new String(byteChecksum, "UTF-8"));
+                        
                         if(encode){
-							String stringB64Hash = b64.encode(buffer);
-							out.writeUTF(stringB64Hash);
-                        }
+                            String stringB64Hash = b64.encode(buffer);
+                            out.writeUTF(stringB64Hash);
+                        }else				
+                            out.write(buffer, 0, bytesRead);    
 						
-						
-                        // send the chunk to the server
-                        out.write(buffer, 0, bytesRead);    
-						
-						//send the hash to the server somehow
-						
+						//send the hash to the server
+//						System.out.println("buffer " + new String(buffer));
+//						System.out.println(checksum);
+						message.sendMessage(checksum);
 
                         // receive notification from server that bytes have been read
                         received = hasReceived(received);
@@ -315,9 +315,10 @@ public class Client
           catch (IOException | InterruptedException ex) {
             Logger.getLogger(Client.class.getName()).log(Level.SEVERE, null, ex);
         }
+		
     }
     
-    // Print and get answer from server if they are ready to receeive bytes    
+    // Print and get answer from server if they are ready to receive bytes    
     public void isReady() throws InterruptedException
     {        
         System.out.println("ready?");
