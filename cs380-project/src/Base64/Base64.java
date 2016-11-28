@@ -38,10 +38,10 @@ public class Base64 {
     public byte[] decode(String str) {
         byte[] binary;
 
-        if ((str.length() % 4) != 0) {
+       /* if ((str.length() % 4) != 0) {
             binary = new byte[(byte)0x00];
             return binary;
-        }
+        }*/
 
         binary = new byte[((str.length() * 3) / 4) - (str.indexOf('=') > 0 ? (str.length() - str.indexOf('=')) : 0)];
 

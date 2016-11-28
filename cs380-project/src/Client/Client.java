@@ -17,59 +17,56 @@ import SHA1.SHA1;
  *
  * @author Alexx
  */
-public class Client 
-{
+public class Client {
     private Socket sock;
     private Scanner sc = new Scanner(System.in);
     Message message;
     Base64 b64;
-	SHA1 sha1;
-	byte[] key;
-	
+    SHA1 sha1;
+    byte[] key;
+
     // Connect the client to the server
-    public boolean start(String host, int port) throws IOException
-    {
+    public boolean start(String host, int port) throws IOException {
         b64 = new Base64();
-		
-		//Reads the key into a byte array
-		FileInputStream fileInputStream = null;
-		//Just change the directory to where the key is in
-		File file = new File("key.txt");
-		key = new byte[(int)file.length()];
-		try{
-			fileInputStream = new FileInputStream(file);
-			fileInputStream.read(key);
-			fileInputStream.close();
-		}catch(FileNotFoundException fileNotFoundException){
-			fileNotFoundException.printStackTrace();
-		}
-		
+
+        //Reads the key into a byte array
+        FileInputStream fileInputStream = null;
+        //Just change the directory to where the key is in
+        File file = new File("key.txt");
+        key = new byte[(int) file.length()];
+        try {
+            fileInputStream = new FileInputStream(file);
+            fileInputStream.read(key);
+            fileInputStream.close();
+        } catch (FileNotFoundException fileNotFoundException) {
+            fileNotFoundException.printStackTrace();
+        }
+
         boolean started = true;
-        try {          
+        try {
             sock = new Socket(host, port);
             System.out.println("Connected to server.");
-            
+
         } catch (IOException ex) {
             started = false;
             //Logger.getLogger(Client.class.getName()).log(Level.SEVERE, null, ex);
         }
         //Open up the message queue
-        if(started)
+        if (started)
             message = new Message(sock);
         return started;
     }
-            
+
     // Log client into server
-    public void loginMenu(Console console)
-    {        
+    public void loginMenu(Console console) {
         System.out.println("1) Create new user");
         System.err.println("2) Login");
         System.out.println("3) Exit");
         boolean loggedOn = false;
         int choice = sc.nextInt();
         sc.nextLine();
-        while(choice != 3 && loggedOn == false){
-            switch(choice){
+        while (choice != 3 && loggedOn == false) {
+            switch (choice) {
                 case 1:
                     message.sendMessage("create");
                     createUser(console);
@@ -82,8 +79,8 @@ public class Client
                     message.sendMessage("exit");
                     exit();
                 default:
-            }      
-            if(loggedOn) menu();
+            }
+            if (loggedOn) menu();
             System.out.println("1) Create new user");
             System.err.println("2) Login");
             System.out.println("3) Exit");
@@ -91,98 +88,94 @@ public class Client
             sc.nextLine();
         }
     }
-    public void createUser(Console console){
+    public void createUser(Console console) {
         createUsername();
         //boolean hasMsg = message.hasMessage();
         //while(!hasMsg){ hasMsg = message.hasMessage(); }
         System.out.println(getMessage());
         boolean goodpass = false;
         String password = "";
-        while(!goodpass){
+        while (!goodpass) {
             char[] hiddenPassword = console.readPassword();
             password = new String(hiddenPassword);
-            if(password.equals("")) System.out.println("Password cannot be empty!");
+            if (password.equals("")) System.out.println("Password cannot be empty!");
             else goodpass = true;
         }
-        message.sendMessage(password);    
+        message.sendMessage(password);
         //while(!hasMsg){ hasMsg = message.hasMessage(); }
         String msg = getMessage();
-        if(msg.equals("Created user!")){
+        if (msg.equals("Created user!")) {
             System.out.println(msg);
-        }else System.out.println(msg);
+        } else System.out.println(msg);
     }
-    
-    public void createUsername(){
+
+    public void createUsername() {
         boolean goodname = false;
-        while(!goodname){
+        while (!goodname) {
             //boolean hasMsg = message.hasMessage();
             //while(!hasMsg){ hasMsg = message.hasMessage(); }
-            System.out.println(getMessage()); 
-            String username = sc.nextLine();    
-            message.sendMessage(username);    
+            System.out.println(getMessage());
+            String username = sc.nextLine();
+            message.sendMessage(username);
             //hasMsg = message.hasMessage();
             //while(!hasMsg){ hasMsg = message.hasMessage(); }
             String msg = getMessage();
-            if(msg.equals("Username is available!")){
+            if (msg.equals("Username is available!")) {
                 System.out.println(msg);
                 goodname = true;
-            }else{
+            } else {
                 System.out.println(msg);
             }
-            
+
         }
     }
-    
-    public boolean login(Console console){
+
+    public boolean login(Console console) {
             boolean login = false;
             //while(!login){
-                //boolean hasMsg = message.hasMessage();
-                //while(!hasMsg){ hasMsg = message.hasMessage(); }
-                System.out.println(getMessage());
-                String username = sc.nextLine();
-                message.sendMessage(username);
+            //boolean hasMsg = message.hasMessage();
+            //while(!hasMsg){ hasMsg = message.hasMessage(); }
+            System.out.println(getMessage());
+            String username = sc.nextLine();
+            message.sendMessage(username);
 
-                //hasMsg = message.hasMessage();
-                //while(!hasMsg){ hasMsg = message.hasMessage(); }
-                System.out.println(getMessage());
-                char[] hiddenPassword = console.readPassword();
-                String password = new String(hiddenPassword);
-                message.sendMessage(password);
-                
-                //hasMsg = message.hasMessage();
-                //while(!hasMsg){ hasMsg = message.hasMessage(); }
-                String msg = getMessage();
-                if (!msg.equals("Logged in successfully!")) 
-                {
-                    System.out.println("Log in failed.");
-                    //TODO: Change this to a loop instead of recurrsion 
-                }
-                else{
-                    System.out.println(msg);   
-                    login = true;
-                    return login;
-                }
+            //hasMsg = message.hasMessage();
+            //while(!hasMsg){ hasMsg = message.hasMessage(); }
+            System.out.println(getMessage());
+            char[] hiddenPassword = console.readPassword();
+            String password = new String(hiddenPassword);
+            message.sendMessage(password);
+
+            //hasMsg = message.hasMessage();
+            //while(!hasMsg){ hasMsg = message.hasMessage(); }
+            String msg = getMessage();
+            if (!msg.equals("Logged in successfully!")) {
+                System.out.println("Log in failed.");
+                //TODO: Change this to a loop instead of recurrsion 
+            } else {
+                System.out.println(msg);
+                login = true;
+                return login;
+            }
             //}
             return false;
-    }
-    // Start menu for choosing to upload a file or quit the program
-    public void menu()
-    {
+        }
+        // Start menu for choosing to upload a file or quit the program
+    public void menu() {
         System.out.println("\n1. Upload file");
         System.out.println("2. Exit");
 
         int choice = sc.nextInt();
         sc.nextLine();
 
-        switch (choice) 
-        {
-            case 1:   
+        switch (choice) {
+            case 1:
                 int encode = -1;
                 System.out.println("Would you like to encode? (0 for no, 1 for yes)");
                 encode = sc.nextInt();
                 sc.nextLine();
                 boolean encoded;
-                if(encode == 1) encoded = true;
+                if (encode == 1) encoded = true;
                 else encoded = false;
                 upload(encoded);
                 menu();
@@ -193,100 +186,99 @@ public class Client
                 System.out.println("Invalid choice.");
                 menu();
         }
-       
+
     }
-        
-    public void upload(boolean encode)
-    {
+
+    public void upload(boolean encode) {
         JFileChooser fc = new JFileChooser();
         try {
-            if (fc.showOpenDialog(null) != JFileChooser.APPROVE_OPTION) 
+            if (fc.showOpenDialog(null) != JFileChooser.APPROVE_OPTION)
                 throw new FileNotFoundException();
-            
+
             File file = fc.getSelectedFile();
-			// Tell server a file is being uploaded
-			message.sendMessage("uploading");
-			
-			String filename = file.getName();			
-			System.out.println("Filename: " + filename);
-			// Send the filename that is being uploaded
-			message.sendMessage(file.getName());
-                        message.sendMessage(String.valueOf(encode));
+            // Tell server a file is being uploaded
+            message.sendMessage("uploading");
+
+            String filename = file.getName();
+            System.out.println("Filename: " + filename);
+            // Send the filename that is being uploaded
+            message.sendMessage(file.getName());
+            message.sendMessage(String.valueOf(encode));
             sendFile(file, encode);
-            
+
         } catch (FileNotFoundException e) {
             System.out.println("Invalid file.");
         }
     }
-    
+
     // Send the file at the given directory
-    public void sendFile(File file, boolean encode)
-    {
-        try {             
-            BufferedInputStream in = new BufferedInputStream (new FileInputStream(file));
+    public void sendFile(File file, boolean encode) {
+        try {
+            BufferedInputStream in = new BufferedInputStream(new FileInputStream(file));
             DataOutputStream out = new DataOutputStream(sock.getOutputStream());
             int bytesRead;
             int bytesSent = 0;
             int attempts = 0;
-            long fileSize = file.length();            
+            long fileSize = file.length();
             String received = "received";
             byte[] buffer = new byte[1024];
-                    
-            System.out.println("Uploading file of size: " + fileSize + " bytes...\n");            
+
+            System.out.println("Uploading file of size: " + fileSize + " bytes...\n");
             // Read up to 1024 bytes (1kb)
-            while ((bytesRead = in.read(buffer)) > 0 && !received.equals("quit")) 
-            {
-				buffer = Arrays.copyOf(buffer, bytesRead);
-                in.mark(bytesRead);				
-                while (true)
-                {				
-                    if (received.equals("received")) 
-                    {
+            while ((bytesRead = in .read(buffer)) > 0 && !received.equals("quit")) {
+                buffer = Arrays.copyOf(buffer, bytesRead); in .mark(bytesRead);
+                while (true) {
+                    if (received.equals("received")) {
                         // notify the server of the bytes are being sent
-                        if (fileSize <= 1024)						
+                        if (fileSize <= 1024)
                             received = "last";
-						
-                        else 
+
+                        else
                             received = "sending";
                         message.sendMessage(received);
+                        Thread.sleep(10);
+
+                        // tell server how many bytes are being sent
+                        // needed for encoding transfer
+                        message.sendMessage("" + bytesRead);
+                        Thread.sleep(10);
+
                         // wait until server is ready for bytes to be sent
-                        isReady();                    
-                        
+                        isReady();
+
                         //*******************INSERT ENCODING***********************
-						String checksum = sha1.encode(buffer);
-						
-						//Encrypt the chunk by XORing with the key
-						xorCipher(buffer, key);
-                        
-						//Encrypt the checksum by XORing with the key
-						//xorCipher(byteChecksum, key);
-						//Send the checksum
+                        String checksum = sha1.encode(buffer);
+
+                        //Encrypt the chunk by XORing with the key
+                        xorCipher(buffer, key);
+
+                        //Encrypt the checksum by XORing with the key
+                        //xorCipher(byteChecksum, key);
+                        //Send the checksum
                         //message.sendMessage(new String(byteChecksum, "UTF-8"));
-                        
-                        if(encode){
+
+                        if (encode) {
                             String stringB64Hash = b64.encode(buffer);
                             out.writeUTF(stringB64Hash);
-                        }else				
-                            out.write(buffer, 0, bytesRead);    
-						
-						//send the hash to the server
-//						System.out.println("buffer " + new String(buffer));
-//						System.out.println(checksum);
-						message.sendMessage(checksum);
+                        } else
+                            out.write(buffer, 0, bytesRead);
+
+                        //send the hash to the server
+                        //						System.out.println("buffer " + new String(buffer));
+                        //						System.out.println(checksum);
+                        message.sendMessage(checksum);
 
                         // receive notification from server that bytes have been read
                         received = hasReceived(received);
-                        
+
                         if (received.equals("quit"))
                             break;
-                        else if (received.equals("failed"))
-                        {
-                            System.out.println("resending bytes\n");
-                            in.reset();
+                        else if (received.equals("failed")) {
+                            System.out.println("resending bytes\n"); in .reset();
                             received = "received";
                             continue;
                         }
-                        
+
 
                         // total bytes sent
                         fileSize -= bytesRead;
@@ -297,81 +289,71 @@ public class Client
                         //Clean out the buffer and start fresh
                         buffer = new byte[1024];
                         break;
-                    } 
+                    }
                 }
             }
-            out.flush();
-            in.close();
-            in = null;
-            if (received.equals("quit"))
-            {
-                System.out.println("Receiver could not download the file and "
-                        + "then quitted.\nGuess I'll quit too."); 
+            out.flush(); in .close(); in = null;
+            if (received.equals("quit")) {
+                System.out.println("Receiver could not download the file and " + "then quitted.\nGuess I'll quit too.");
                 exit();
-            }
-            else 
+            } else
                 System.out.println("File uploaded and received successfully!");
-        } catch (NullPointerException ex){
+        } catch (NullPointerException ex) {
             menu();
-        }           
-          catch (IOException | InterruptedException ex) {
+        } catch (IOException | InterruptedException ex) {
             Logger.getLogger(Client.class.getName()).log(Level.SEVERE, null, ex);
         }
-		
+
     }
-    
+
     // Print and get answer from server if they are ready to receive bytes    
-    public void isReady() throws InterruptedException
-    {        
+    public void isReady() throws InterruptedException {
         System.out.println("ready?");
         String ready = "";
-        while (!ready.equals("ready"))
-        {
+        while (!ready.equals("ready")) {
             Thread.sleep(10); //10ms
             ready = getMessage();
             //ready = message.readMessage();
         }
     }
-    
-    
+
+
     // Print and get answer from server if they received bytes    
-    public String hasReceived(String received) throws InterruptedException
-    {        
-        System.out.println("received?");  
-        while (!received.equals("received") && !received.equals("failed") 
-                && !received.equals("quit"))
-        {   
+    public String hasReceived(String received) throws InterruptedException {
+        System.out.println("received?");
+        while (!received.equals("received") && !received.equals("failed") && !received.equals("quit")) {
             Thread.sleep(10); //10ms
             received = getMessage();
             //received = message.readMessage();
-        }        
-        
+        }
+
         if (received.equals("failed") || received.equals("quit"))
-            System.out.println("failed");       
-        
+            System.out.println("failed");
+
         return received;
     }
-    
-        //  Encodes/decodes the input with the key using XOR.
-    public void xorCipher(byte[] input, byte[] key){
-        for(int i = 0; i < input.length; i++){
+
+    //  Encodes/decodes the input with the key using XOR.
+    public void xorCipher(byte[] input, byte[] key) {
+        for (int i = 0; i < input.length; i++) {
             input[i] = (byte)(((int) input[i]) ^ ((int) key[i % key.length]));
         }
     }
-    
-    public String getMessage(){
-        boolean hasMsg = message.hasMessage();
-        while(!hasMsg){ hasMsg = message.hasMessage(); }       
-        String msg = message.readMessage();
-        if(msg.equals("disconnected")){
-            exit();
+
+    public String getMessage() {
+            boolean hasMsg = message.hasMessage();
+            while (!hasMsg) {
+                hasMsg = message.hasMessage();
+            }
+            String msg = message.readMessage();
+            if (msg.equals("disconnected")) {
+                exit();
+            }
+            return msg;
+            //disconnected
         }
-        return msg;
-        //disconnected
-    }   
-    // Exit the program
-    public void exit()
-    {
+        // Exit the program
+    public void exit() {
         try {
             System.out.println("\nExiting...");
             System.out.println("Bye bye.");
@@ -379,6 +361,6 @@ public class Client
             System.exit(0);
         } catch (IOException ex) {
             Logger.getLogger(Client.class.getName()).log(Level.SEVERE, null, ex);
-        }        
+        }
     }
 }
