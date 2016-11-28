@@ -223,7 +223,6 @@ public class Client
     public void sendFile(File file, boolean encode)
     {
         try {             
-            byte[] buffer = new byte[1024];
             BufferedInputStream in = new BufferedInputStream (new FileInputStream(file));
             DataOutputStream out = new DataOutputStream(sock.getOutputStream());
             int bytesRead;
@@ -231,19 +230,22 @@ public class Client
             int attempts = 0;
             long fileSize = file.length();            
             String received = "received";
+            byte[] buffer = new byte[1024];
                     
             System.out.println("Uploading file of size: " + fileSize + " bytes...\n");            
             // Read up to 1024 bytes (1kb)
             while ((bytesRead = in.read(buffer)) > 0 && !received.equals("quit")) 
-            {    
-                in.mark(1024);
+            {
+				buffer = Arrays.copyOf(buffer, bytesRead);
+                in.mark(bytesRead);				
                 while (true)
-                {
+                {				
                     if (received.equals("received")) 
                     {
                         // notify the server of the bytes are being sent
-                        if (fileSize <= 1024)
+                        if (fileSize <= 1024)						
                             received = "last";
+						
                         else 
                             received = "sending";
                         message.sendMessage(received);

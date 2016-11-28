@@ -194,7 +194,6 @@ public class Server
     public void readFile()
     {
         try { 
-			byte[] buffer = new byte[1024];        
             DataInputStream in = new DataInputStream(sock.getInputStream());         
             int bytesRead;
             File file = saveFile();
@@ -204,12 +203,15 @@ public class Server
             int fileSize = 0;            
             String sending = "";
             boolean lastChunk = false;
-            boolean integrity = true;   // should be changed to false once decode code is inserted
-            
+            boolean integrity = true;   // should be changed to false once decode code is inserted            
+			byte[] buffer = new byte[1024];        
+			
             while(lastChunk == false && attempts < 4)
             {
+				System.out.println();
                 while (true)
                 {     
+				
                     sending = getMessage();
                     //sending = message.readMessage();                         
                     if (sending.equals("sending") || sending.equals("last")) 
@@ -229,6 +231,9 @@ public class Server
 							
 						}else      
                             bytesRead = in.read(buffer);
+								
+						buffer = Arrays.copyOf(buffer, bytesRead);
+						
 
                         //*******************INSERT DECODING***********************
                         // change integrity to false if decoding doesn't match     
