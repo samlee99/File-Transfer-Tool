@@ -214,10 +214,9 @@ public class Server
                     //sending = message.readMessage();                         
                     if (sending.equals("sending") || sending.equals("last")) 
                     {
-                        if (sending.equals("last")){
+                        if (sending.equals("last"))
                             lastChunk = true;
-							
-						}
+
                         // tell client the server is ready to receive chunk                 
                         isReady();
                         // wait for client to send chunk 
@@ -236,21 +235,15 @@ public class Server
                         //notify client chunk have been received or failed to be received
 						//
 
-						//Decode the chunk with the key
+						
+                        //Decode the chunk with the key
 						xorCipher(buffer, key);
-						
-						//TESTING: print the buffer
-						for(byte b : buffer) System.out.print((char)b);
-						System.out.println();
-							
-						
-                        
 						
 						//Verify if the checksums are equal
 //						System.out.println("buffer " + new String(buffer));
                         String verifyChecksum = getMessage();
 						String checksum = sha1.encode(buffer);
-						System.out.println("Client Checksum " + verifyChecksum + " -- Server checksum " + checksum);
+						System.out.println("verify Checksum " + verifyChecksum + " -- checksum " + checksum);
 						
 						if(!checksum.equals(verifyChecksum)){
 							integrity = false;

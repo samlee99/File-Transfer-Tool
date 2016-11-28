@@ -242,13 +242,8 @@ public class Client
                     if (received.equals("received")) 
                     {
                         // notify the server of the bytes are being sent
-                        if (fileSize <= 1024){
+                        if (fileSize <= 1024)
                             received = "last";
-							//xorCipher(buffer, key);
-							for(byte b : buffer) System.out.print((char)b);
-							System.out.println();
-							
-						}
                         else 
                             received = "sending";
                         message.sendMessage(received);
@@ -257,8 +252,6 @@ public class Client
                         
                         //*******************INSERT ENCODING***********************
 						String checksum = sha1.encode(buffer);
-						System.out.println("Client checksum = " + checksum);
-						
 						
 						//Encrypt the chunk by XORing with the key
 						xorCipher(buffer, key);
@@ -282,7 +275,7 @@ public class Client
                         // receive notification from server that bytes have been read
                         received = hasReceived(received);
                         
-                        if (received.equals("last"))
+                        if (received.equals("quit"))
                             break;
                         else if (received.equals("failed"))
                         {
@@ -291,7 +284,6 @@ public class Client
                             received = "received";
                             continue;
                         }
-						
                         
 
                         // total bytes sent
