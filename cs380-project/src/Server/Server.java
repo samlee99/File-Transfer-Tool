@@ -225,15 +225,15 @@ public class Server
                         //*******************INSERT DECODING***********************
                         // change integrity to false if decoding doesn't match     
                         //notify client chunk have been received or failed to be received
-						encode = Boolean.parseBoolean(getMessage());
+						//encode = Boolean.parseBoolean(getMessage());
 						if(encode){
 							String myString = in.readUTF();
 							buffer = b64.decode(myString);
 						}
 						
-						//Decode the chunk with the key
-						xorCipher(buffer, key);
-						
+                        //Decode the chunk with the key
+			xorCipher(buffer, key);
+			
 						//Decode the hash/checksum with the key
 						//TODO: implement xorCipher(hash,key)
 						

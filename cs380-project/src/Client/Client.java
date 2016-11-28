@@ -30,7 +30,6 @@ public class Client
     public boolean start(String host, int port) throws IOException
     {
         b64 = new Base64();
-        xor = new xorCipher();
 		
 		//Reads the key into a byte array
 		FileInputStream fileInputStream = null;
@@ -247,23 +246,20 @@ public class Client
                         else 
                             received = "sending";
                         message.sendMessage(received);
-
                         // wait until server is ready for bytes to be sent
                         isReady();                    
-                        
 
                         //*******************INSERT ENCODING***********************
-						String checksum = sha1.encode(buffer);
+			//String checksum = sha1.encode(buffer);
 						
-						//need to send this checksum to client for verification
-						byte[] byteChecksum = checksum.getBytes(); 
-						
-						//Encrypt the chunk by XORing with the key
-						xorCipher(buffer, key);
-						//Encrypt the checksum by XORing with the key
-						xorCipher(byteChecksum, key);
-						
-						message.sendMessage(String.valueOf(encode));
+			//need to send this checksum to client for verification
+			//byte[] byteChecksum = checksum.getBytes(); 
+			//Encrypt the chunk by XORing with the key
+			xorCipher(buffer, key);
+			//Encrypt the checksum by XORing with the key
+			//xorCipher(byteChecksum, key);
+			
+			//message.sendMessage(String.valueOf(encode));
                         if(encode){
 							String stringB64Hash = b64.encode(buffer);
 							out.writeUTF(stringB64Hash);
