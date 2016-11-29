@@ -13,7 +13,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.*;
 import SHA1.SHA1;
-//import Base64.Base64;
+import Base64.Base64;
 
 /**
  *
@@ -25,11 +25,12 @@ public class Server {
     private Scanner sc = new Scanner(System.in);
     Message message;
     byte[] key;
-    //Base64 b64;
+    Base64 b64;
 
 
     // Start the server and search for a client
     public void start(int port) throws IOException {
+        b64 = new Base64();
         //Not sure where to put this....
         //Reads the key into a byte array
         FileInputStream fileInputStream = null;
@@ -218,11 +219,11 @@ public class Server {
 
                         if (encode) {
                             System.out.println("Reading: ");
-                            String myString = in .readUTF();
+                            String myString = in.readUTF();
                             //buffer = b64.decode(myString);	
-                            buffer = Base64.getDecoder().decode(myString);
+                            buffer = b64.decode(myString);
                         } else
-                            bytesRead = in .read(buffer);
+                            bytesRead = in.read(buffer);
 
                         //*******************INSERT DECODING***********************
                         // change integrity to false if decoding doesn't match     
